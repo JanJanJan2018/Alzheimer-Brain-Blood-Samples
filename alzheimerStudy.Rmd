@@ -1,0 +1,153 @@
+---
+title: "Alzheimers Disease Brain Blood Samples"
+author: "Janis Corona"
+date: "1/17/2020"
+output: pdf_document
+---
+
+This analysis is done using the NCBI gene expression samples taken from a study that used the middle temporal gyrus side of the brain of frozen samples taken from Alzheimer's patients that totalled 78 samples of control and repeat microarray gene expression results. The file was able to be downloaded and unzipped complete with the platform gene symbol ID already attached. A separate file of the meta information that includes the age, gender, tissue type and disease as Alzheimer's Disease (AD) or control was made from the Series information for each sample. The age range for these samples of healthy and AD patients is from 70-95 years of age.
+
+This study can be linked to with all the sample and meta information at: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE109887
+
+
+Open the original Sample ID values text file and write out as a csv file.
+```{r}
+alz <- read.delim('GSE109887_series_matrix.txt', sep='\t', header=TRUE, na.strings=c('',' '), comment.char='!')
+
+write.csv(alz,'alzheimerSamples.csv', row.names=FALSE)
+
+```
+
+```{r}
+head(alz)
+```
+
+
+Lets read in the meta information for age, gender, and disease type as AD or control.
+```{r}
+meta <- read.csv('AlzheimerAgeGenderTissueSamplesMeta.csv', sep=',',
+                 header=TRUE, na.strings=c('',' '))
+```
+
+```{r}
+head(meta)
+```
+
+
+Transpose the meta to fields instead of rows
+```{r}
+
+meta1 <- as.data.frame(t(meta))
+names <- as.character(meta$sampleID)
+colnames(meta1) <- names
+meta2 <- meta1[-1,]
+head(meta2)
+```
+
+
+Separate the data into gender and control or AD data sets respectively in each gender and for both genders.
+
+Data tables of males and females for meta only:
+```{r}
+row.names(alz) <- alz$ID_REF
+alz1 <- alz[,-1]
+
+row.names(meta) <- meta$sampleID
+Meta <- meta[,-1]
+
+names <- row.names(Meta)
+Meta1 <- as.data.frame(t(Meta))
+colnames(Meta1) <- names
+
+fem <- grep('F', Meta1$gender)
+mal <- grep('M', Meta1$gender)
+
+Fem <- Meta1[fem,]
+Mal <- Meta1[mal,]
+
+Fem$sampleID <- as.factor(row.names(Fem))
+Mal$sampleID <- as.factor(row.names(Mal))
+```
+
+Display the fields of these gender specific tables by meta information:
+```{r}
+colnames(Fem)
+colnames(Mal)
+```
+
+The same indices of each row name is the same as the alz1, alzheimer table colnames indices. So, use those same female and male indices values from the regex commands to separate the alzheimer table into male and female tables.
+```{r}
+Females <- alz1[,fem]
+Males <- alz1[,mal]
+```
+
+
+
+Data tables of control or AD for males and for females for meta only:
+```{r}
+femControl <- grep('control', Fem$disease)
+malControl <- grep('control', Mal$disease)
+
+femAD <- grep('AD', Fem$disease)
+malAD <- grep('AD', Mal$disease)
+
+FemCtrl <- Fem[femControl,]
+MalCtrl <- Mal[malControl,]
+
+FemAD <- Fem[femAD,]
+MalAD <- Mal[malAD,]
+```
+
+Display the AD or Control tables by gender for meta information:
+```{r}
+colnames(FemCtrl)
+colnames(FemAD)
+colnames(FemAD)
+colnames(MalAD)
+```
+
+Now use that same index information within each gender table derived from the alzheimer gene expression data:
+```{r}
+Females_AD <- Females[,femAD]
+Females_control <- Females[,femControl]
+
+males_AD <- Males[,malAD]
+males_control <- Males[, malControl]
+```
+
+Write these last tables to csv file:
+```{r}
+write.csv(Females_AD, 'females_Alzheimers.csv', row.names=TRUE)
+write.csv(Females_control, 'females_healthy_control.csv', row.names=TRUE)
+write.csv(males_AD, 'males_Alzheimers.csv', row.names=TRUE)
+write.csv(males_control, 'males_healthy_control.csv', row.names=TRUE)
+```
+
+What is the age range on these samples of healthy controls and AD patients?
+```{r}
+age1 <- range(as.numeric(as.character(FemAD$age)))
+age2 <- range(as.numeric(as.character(FemCtrl$age)))
+age3 <- range(as.numeric(as.character(MalAD$age)))
+age4 <- range(as.numeric(as.character(MalCtrl$age)))
+
+char <- c('The minimum age: ', 'The maximum age: ')
+
+AD_fem <- paste0(char,age1, sep='')
+AD_mal <- paste0(char,age3, sep='')
+ctrl_fem <- paste0(char,age2, sep='')
+ctrl_mal <- paste0(char, age4, sep='')
+
+adf <- c('Alzheimer females: ')
+adm <- c('Alzheimer males: ')
+cf <- c('healthy females: ')
+cm <- c('healthy males: ')
+
+ranges <- c(adf,AD_fem, adm, AD_mal, cf, ctrl_fem, cm, ctrl_mal)
+ranges
+```
+
+The age range in all of this data for these healthy and AD patients is age 70 to age 95 years of age.
+
+
+
+
