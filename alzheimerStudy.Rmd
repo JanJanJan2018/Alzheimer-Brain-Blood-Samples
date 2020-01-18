@@ -8,7 +8,7 @@ output: pdf_document
 This analysis is done using the NCBI gene expression samples taken from a study that used the middle temporal gyrus side of the brain of frozen samples taken from Alzheimer's patients that totalled 78 samples of control and repeat microarray gene expression results. The file was able to be downloaded and unzipped complete with the platform gene symbol ID already attached. A separate file of the meta information that includes the age, gender, tissue type and disease as Alzheimer's Disease (AD) or control was made from the Series information for each sample. The age range for these samples of healthy and AD patients is from 70-95 years of age.
 
 This study can be linked to with all the sample and meta information at: https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE109887
-
+The link to the 41 mb text file of series of samples with ID that is too large for github, or my github account type is: ftp://ftp.ncbi.nlm.nih.gov/geo/series/GSE109nnn/GSE109887/matrix/GSE109887_series_matrix.txt.gz 
 
 Open the original Sample ID values text file and write out as a csv file.
 ```{r}
@@ -146,7 +146,81 @@ ranges <- c(adf,AD_fem, adm, AD_mal, cf, ctrl_fem, cm, ctrl_mal)
 ranges
 ```
 
-The age range in all of this data for these healthy and AD patients is age 70 to age 95 years of age.
+The age range in all of this data for these healthy and AD patients is age 70 to age 95 years of age.Just useful to know when cross comparing blood microarray samples across the females from our overweight females using epigallocatechin (EGCG) in their 40s, the males from Russia who are also in their 40s with or without myocardial infarction (MI), the hemochromatosis (iron toxicity) males and females averaging their 40s in years of age with or without iron toxicity, and the flu vaccinated blood samples of males and females also in their 40s with or without antibiotic treatment combined with flu vaccination. 
+
+
+Lets do some data analysis of the means, max, min, and fold change between the groups to create some additional statistical information on these Alzheimers blood samples and healthy controls of elderly patients. We will use dplyr for this and plot with ggplot2 but not till later.
+
+```{r, error=FALSE, message=F, warning=F}
+library(dplyr)
+library(ggplot2)
+```
+
+First lets look at the control and the AD tables within the gender specific tables: Females_AD, Females_control, males_AD, males_control. Get the means of each gene, then the min and max to compare into one table. This and these tables of data were already cleaned to only have one gene per row, due to not having to merge the platform fields to the series table and duplicate genes for missing data in the additional rows like previous studies mentioned earlier required.
+```{r}
+
+names <- row.names(Females_AD)
+
+AD_fem_Mean <- as.data.frame(rowMeans(Females_AD, na.rm=T), 
+                             row.names=names)
+colnames(AD_fem_Mean) <- 'AD_Fem_Mean'
+AD_mal_Mean <- as.data.frame(rowMeans(males_AD, na.rm=T), 
+                             row.names=names)
+colnames(AD_mal_Mean) <- 'AD_Mal_Mean'
+ctrl_fem_Mean <- as.data.frame(rowMeans(Females_control, na.rm=T),
+                               row.names=names)
+colnames(ctrl_fem_Mean) <- 'Ctrl_Fem_Mean'
+ctrl_mal_Mean <- as.data.frame(rowMeans(males_control, na.rm=T), 
+                               row.names=names)
+colnames(ctrl_mal_Mean) <- 'Ctrl_Mal_Mean'
+
+
+Mean_AD_ctrl <- cbind(AD_fem_Mean, AD_mal_Mean, ctrl_fem_Mean, ctrl_mal_Mean)
+
+Mean_AD_ctrl$FC_fem_AD_Ctrl <- round(AD_fem_Mean/ctrl_fem_Mean,3)
+Mean_AD_ctrl$FC_mal_AD_Ctrl <- round(AD_mal_Mean/ctrl_mal_Mean,3)
+colnames(Mean_AD_ctrl)[5:6] <- c('FC_fem_AD_Ctrl','FC_mal_AD_Ctrl')
+
+```
+
+The sample minimums of each table of Females_AD, Females_control, males_AD, males_control:
+```{r}
+###
+samples <- as.vector(colnames(Females_AD))
+Females_AD1 <- Females_AD
+Females_AD1$gene <- as.factor(row.names(Females_AD1))
+colnames(Females_AD1)[25] <- 'gene'
+
+AD_fem_min <- Females_AD1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
+###
+samples <- as.vector(colnames(males_AD))
+males_AD1 <- males_AD
+males_AD1$gene <- as.factor(row.names(males_AD1))
+colnames(males_AD1)[23] <- 'gene'
+
+AD_mal_min <- males_AD1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
+###
+samples <- as.vector(colnames(Females_control))
+Females_control1 <- Females_control
+Females_control1$gene <- as.factor(row.names(Females_control1))
+colnames(Females_control1)[17] <- 'gene'
+
+fem_ctrl_min <- Females_control1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
+###
+samples <- as.vector(colnames(males_control))
+males_control1 <- males_control
+males_control1$gene <- as.factor(row.names(males_control1))
+colnames(males_control1)[17] <- 'gene'
+
+mal_ctrl_min <- males_control1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
+
+```
+
+The minimum values per gene for each sample are in the four tables: mal_ctrl_min, fem_ctrl_min, AD_mal_min, AD_fem_min. 
+```{r}
+
+
+```
 
 
 
