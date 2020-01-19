@@ -149,79 +149,67 @@ ranges
 The age range in all of this data for these healthy and AD patients is age 70 to age 95 years of age.Just useful to know when cross comparing blood microarray samples across the females from our overweight females using epigallocatechin (EGCG) in their 40s, the males from Russia who are also in their 40s with or without myocardial infarction (MI), the hemochromatosis (iron toxicity) males and females averaging their 40s in years of age with or without iron toxicity, and the flu vaccinated blood samples of males and females also in their 40s with or without antibiotic treatment combined with flu vaccination. 
 
 
-Lets do some data analysis of the means, max, min, and fold change between the groups to create some additional statistical information on these Alzheimers blood samples and healthy controls of elderly patients. We will use dplyr for this and plot with ggplot2 but not till later.
+Lets do some data analysis of the means and fold change between the groups to create some additional statistical information on these Alzheimers blood samples and healthy controls of elderly patients. We will use dplyr for this and plot with ggplot2 but not till later.
 
 ```{r, error=FALSE, message=F, warning=F}
 library(dplyr)
 library(ggplot2)
 ```
 
-First lets look at the control and the AD tables within the gender specific tables: Females_AD, Females_control, males_AD, males_control. Get the means of each gene, then the min and max to compare into one table. This and these tables of data were already cleaned to only have one gene per row, due to not having to merge the platform fields to the series table and duplicate genes for missing data in the additional rows like previous studies mentioned earlier required.
-```{r}
+First lets look at the control and the AD tables within the gender specific tables: Females_AD, Females_control, males_AD, males_control. Get the means of each gene and compare into one table. This and these tables of data were already cleaned to only have one gene per row, due to not having to merge the platform fields to the series table and duplicate genes for missing data in the additional rows like previous studies mentioned earlier required.
 
+Get the row means of each table and add to each table.
+```{r}
 names <- row.names(Females_AD)
+Females_AD1 <- rowMeans(Females_AD)
+#colnames(Females_AD1) <- 'fem_AD_Mean'
 
-AD_fem_Mean <- as.data.frame(rowMeans(Females_AD, na.rm=T), 
-                             row.names=names)
-colnames(AD_fem_Mean) <- 'AD_Fem_Mean'
-AD_mal_Mean <- as.data.frame(rowMeans(males_AD, na.rm=T), 
-                             row.names=names)
-colnames(AD_mal_Mean) <- 'AD_Mal_Mean'
-ctrl_fem_Mean <- as.data.frame(rowMeans(Females_control, na.rm=T),
-                               row.names=names)
-colnames(ctrl_fem_Mean) <- 'Ctrl_Fem_Mean'
-ctrl_mal_Mean <- as.data.frame(rowMeans(males_control, na.rm=T), 
-                               row.names=names)
-colnames(ctrl_mal_Mean) <- 'Ctrl_Mal_Mean'
+Females_control1 <- rowMeans(Females_control)
+#colnames(Females_control1) <- 'fem_ctrl_Mean'
 
+males_AD1 <- rowMeans(males_AD)
+#colnames(males_AD1) <- 'mal_AD_Mean'
 
-Mean_AD_ctrl <- cbind(AD_fem_Mean, AD_mal_Mean, ctrl_fem_Mean, ctrl_mal_Mean)
-
-Mean_AD_ctrl$FC_fem_AD_Ctrl <- round(AD_fem_Mean/ctrl_fem_Mean,3)
-Mean_AD_ctrl$FC_mal_AD_Ctrl <- round(AD_mal_Mean/ctrl_mal_Mean,3)
-colnames(Mean_AD_ctrl)[5:6] <- c('FC_fem_AD_Ctrl','FC_mal_AD_Ctrl')
-
+males_control1 <- rowMeans(males_control)
+#colnames(males_control1) <- 'mal_ctrl_Mean'
 ```
 
-The sample minimums of each table of Females_AD, Females_control, males_AD, males_control:
 ```{r}
-###
-samples <- as.vector(colnames(Females_AD))
-Females_AD1 <- Females_AD
-Females_AD1$gene <- as.factor(row.names(Females_AD1))
-colnames(Females_AD1)[25] <- 'gene'
-
-AD_fem_min <- Females_AD1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
-###
-samples <- as.vector(colnames(males_AD))
-males_AD1 <- males_AD
-males_AD1$gene <- as.factor(row.names(males_AD1))
-colnames(males_AD1)[23] <- 'gene'
-
-AD_mal_min <- males_AD1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
-###
-samples <- as.vector(colnames(Females_control))
-Females_control1 <- Females_control
-Females_control1$gene <- as.factor(row.names(Females_control1))
-colnames(Females_control1)[17] <- 'gene'
-
-fem_ctrl_min <- Females_control1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
-###
-samples <- as.vector(colnames(males_control))
-males_control1 <- males_control
-males_control1$gene <- as.factor(row.names(males_control1))
-colnames(males_control1)[17] <- 'gene'
-
-mal_ctrl_min <- males_control1 %>% group_by(gene) %>% summarise(samples, min, na.rm=T)
-
+means <- cbind(Females_AD1, Females_control1, males_AD1, males_control1)
+Means <- as.data.frame(means)
+colnames(Means) <- paste(colnames(Means),'_Mean',sep='')
+str(Means)
 ```
 
-The minimum values per gene for each sample are in the four tables: mal_ctrl_min, fem_ctrl_min, AD_mal_min, AD_fem_min. 
+Now for the fold change values between the Means of the female control and AD patients, then for the male control and AD patients.
 ```{r}
+names <- row.names(Means)
+FC_females <- Means %>% mutate(FC_fem_ctrl_AD = 
+                                 Females_AD1_Mean/Females_control1_Mean)
+str(FC_females)
+row.names(FC_females) <- names
+```
 
+```{r}
+names <- row.names(FC_females)
+FC_both <- FC_females %>% mutate(FC_male_ctrl_AD = 
+                                   males_AD1_Mean/males_control1_Mean)
+row.names(FC_both) <- names
+str(FC_both)
+```
 
+```{r}
+write.csv(FC_both, 'FC_both.csv', row.names=TRUE)
 ```
 
 
+Combine the data of the samples with IDs in the alz1 table with the stats.
+```{r}
+both <- cbind(FC_both, alz1)
+
+Both <- round(both, 3)
+
+write.csv(Both, 'Both.csv', row.names=TRUE)
+```
 
 
