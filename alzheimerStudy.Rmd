@@ -149,11 +149,10 @@ ranges
 The age range in all of this data for these healthy and AD patients is age 70 to age 95 years of age.Just useful to know when cross comparing blood microarray samples across the females from our overweight females using epigallocatechin (EGCG) in their 40s, the males from Russia who are also in their 40s with or without myocardial infarction (MI), the hemochromatosis (iron toxicity) males and females averaging their 40s in years of age with or without iron toxicity, and the flu vaccinated blood samples of males and females also in their 40s with or without antibiotic treatment combined with flu vaccination. 
 
 
-Lets do some data analysis of the means and fold change between the groups to create some additional statistical information on these Alzheimers blood samples and healthy controls of elderly patients. We will use dplyr for this and plot with ggplot2 but not till later.
+Lets do some data analysis of the means and fold change between the groups to create some additional statistical information on these Alzheimers blood samples and healthy controls of elderly patients. We will use dplyr for this and plot with ggplot2 later.
 
 ```{r, error=FALSE, message=F, warning=F}
 library(dplyr)
-library(ggplot2)
 ```
 
 First lets look at the control and the AD tables within the gender specific tables: Females_AD, Females_control, males_AD, males_control. Get the means of each gene and compare into one table. This and these tables of data were already cleaned to only have one gene per row, due to not having to merge the platform fields to the series table and duplicate genes for missing data in the additional rows like previous studies mentioned earlier required.
@@ -210,6 +209,134 @@ both <- cbind(FC_both, alz1)
 Both <- round(both, 3)
 
 write.csv(Both, 'Both.csv', row.names=TRUE)
+```
+
+
+Top 100 genes Most expressed in fold change for females with AD:
+```{r}
+top100_fem <- Both[order(Both$FC_fem_ctrl_AD, decreasing=TRUE)[0:100],]
+a <- row.names(top100_fem)
+a
+```
+
+Top 100 genes most expressed in fold change for males with AD:
+```{r}
+top100_male <- Both[order(Both$FC_male_ctrl_AD, decreasing=TRUE)[0:100],]
+b <- row.names(top100_male)
+b
+```
+
+
+Bottom 100 genes that are least expressed in fold change in females with AD:
+```{r}
+bottom100_fem <- Both[order(Both$FC_fem_ctrl_AD, decreasing=FALSE)[0:100],]
+c <-row.names(bottom100_fem)
+c
+```
+
+
+Bottom 100 genes that are least expressed in fold change in males with AD:
+```{r}
+bottom100_male <- Both[order(Both$FC_male_ctrl_AD, decreasing=FALSE)[0:100],]
+d <- row.names(bottom100_male)
+d
+```
+
+```{r}
+ab <- c(a,b)
+topBoth <- unique(ab)
+
+cd <- c(c,d)
+bottomBoth <- unique(cd)
+```
+
+
+The unique top genes are:
+```{r}
+topBoth
+```
+
+The unique bottom genes are:
+```{r}
+bottomBoth
+```
+
+The top genes in common are those genes most expressed in fold change in females AND males who have Alzheimer:
+```{r}
+A <- as.data.frame(a)
+B <- as.data.frame(b)
+
+topBoth <- merge(A,B,by.x='a', by.y='b')
+topBoth$a
+```
+
+The bottom genes in common are the least expressed genes in females AND males who have Alzheimer:
+```{r}
+C <- as.data.frame(c)
+D <- as.data.frame(d)
+
+bottomBoth <- merge(C,D, by.x='c', by.y='d')
+bottomBoth$c
+```
+
+
+Lets look at three top expressed and three least expressed genes in common for females and males:
+```{r}
+b3 <- as.character(bottomBoth$c[1:3])
+t3 <- as.character(topBoth$a[1:3])
+
+mix <- c(b3,t3)
+mix
+```
+
+```{r}
+Mix <- as.data.frame(mix)
+mBoth <- Both
+mBoth$gene <- row.names(mBoth)
+MixBoth <- merge(Mix, mBoth, by.x='mix', by.y='gene')
+
+toPlot <- MixBoth[,c(1,6,7)]
+colnames(toPlot)[1] <- 'gene'
+toPlot
+```
+
+```{r, message=F, error=F, warning=F}
+library(ggplot2)
+library(tidyr)
+```
+
+```{r}
+
+to_plot <- gather(toPlot, 'group','foldChange',2:3)
+to_plot
+
+```
+
+
+```{r, message=FALSE, error=FALSE, warning=FALSE}
+
+ggplot(data = to_plot, aes(x=gene, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 1.2, by=.1), limits=c(0,1.2))+
+  scale_fill_brewer(palette='Paired') + 
+  ylab('Fold Change in Alzheimer male and female Samples')
+
+
+```
+
+
+Some other data sets on diseases would be interesting to compare to this data on Alzheimer patients. The other data sets to compare this blood tissue type of microarray gene expression profiles are the hemochromatosis (iron toxicity), epigallocatechin EGCG (green tea extract) use by overweight females in 40s, myocardial infarction MI (heart disease) in Russian males in 40s, antibiotic treatment in flu vaccinated patients of males and females between 18-45 years of age, and an immunization blood sample data set that hasn't been analyzed yet so it will be left out. 
+
+Those data sets are needed for their stats with Fold Change values for each study respectively. 
+
+The females in the overweight study, the females in the flu study, and the females in the iron toxicity study could be cross compared to the females in this study on Alzheimer female patients. The males in the heart disease study, iron toxicity study, and flu study could be compared to the males in this Alzheimer study. And both genders from those studies could also be compared to both genders in this study. 
+
+The plan is to get the genes these studies all have in common and compare between the genders on fold change stats of those genes. That being iron toxicity fold change, and flu vaccinated fold change compared to added antibiotics (not compared to healthy non vaccinated patients) for comparison with Alzheimer patients. Overweight females using EGCG for weight loss is exclusive to the female comparisons, and the heart disease study was exclusive to male patients.
+
+This study's data on fold change, means, and sample values is the **both.csv** file. The flu study had days 0,3,7, and 21 comparisons and both genders in the **FoldChange_All.csv** file for that study. The iron toxicity fold change stats is in the **all-fc-grops.csv** file for the hemochromatosis study on both genders. The overweight females using EGCG to diet with the included fold change values for those using EGCG or EGCG+vitamin C+fish oil is in the **foldChange_EGCG.csv** file. And the males who have heart disease of type MI is in the file **foldChange_MI_males.csv**.
+```{r}
+
+
 ```
 
 
