@@ -325,18 +325,66 @@ ggplot(data = to_plot, aes(x=gene, y=foldChange, fill=group)) +
 ```
 
 
-Some other data sets on diseases would be interesting to compare to this data on Alzheimer patients. The other data sets to compare this blood tissue type of microarray gene expression profiles are the hemochromatosis (iron toxicity), epigallocatechin EGCG (green tea extract) use by overweight females in 40s, myocardial infarction MI (heart disease) in Russian males in 40s, antibiotic treatment in flu vaccinated patients of males and females between 18-45 years of age, and an immunization blood sample data set that hasn't been analyzed yet so it will be left out. 
+Some other data sets on diseases would be interesting to compare to this data on Alzheimer patients. The other data sets to compare this blood tissue type of microarray gene expression profiles are the:
+hemochromatosis (iron toxicity) from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE121620, 
+epigallocatechin EGCG (green tea extract) use by overweight females in 40s found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE74560, 
+myocardial infarction MI (heart disease) in Russian males in 40s found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE141512, 
+antibiotic treatment in flu vaccinated patients of males and females between 18-45 years of age found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120717 and https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE120719, and an 
+immunization blood sample data set that only has healthy donors blood six days after receiving the tetanis-diphtheria toxoids and acellular pertussis found at https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE59697. 
 
-Those data sets are needed for their stats with Fold Change values for each study respectively. 
+Those data sets are needed for their stats with Fold Change values for each study respectively, except the tetanis shot because it is only healthy donor samples analyzing the tetanis-diptheria toxoids as an antigen to test the B lymphocytes route in the plasma cells. 
 
 The females in the overweight study, the females in the flu study, and the females in the iron toxicity study could be cross compared to the females in this study on Alzheimer female patients. The males in the heart disease study, iron toxicity study, and flu study could be compared to the males in this Alzheimer study. And both genders from those studies could also be compared to both genders in this study. 
 
 The plan is to get the genes these studies all have in common and compare between the genders on fold change stats of those genes. That being iron toxicity fold change, and flu vaccinated fold change compared to added antibiotics (not compared to healthy non vaccinated patients) for comparison with Alzheimer patients. Overweight females using EGCG for weight loss is exclusive to the female comparisons, and the heart disease study was exclusive to male patients.
 
-This study's data on fold change, means, and sample values is the **both.csv** file. The flu study had days 0,3,7, and 21 comparisons and both genders in the **FoldChange_All.csv** file for that study. The iron toxicity fold change stats is in the **all-fc-grops.csv** file for the hemochromatosis study on both genders. The overweight females using EGCG to diet with the included fold change values for those using EGCG or EGCG+vitamin C+fish oil is in the **foldChange_EGCG.csv** file. And the males who have heart disease of type MI is in the file **foldChange_MI_males.csv**.
-```{r}
+This study's data on fold change, means, and sample values is the **both.csv** file. The flu study had days 0,3,7, and 21 comparisons and both genders in the **FoldChange_All.csv** file for that study. The iron toxicity fold change stats is in the **all-fc-grops.csv** file for the hemochromatosis study on both genders. The overweight females using EGCG to diet with the included fold change values for those using EGCG or EGCG+vitamin C+fish oil is in the **foldChange_EGCG.csv** file. And the males who have heart disease of type MI is in the file **foldChange_MI_males.csv**. The tetanis immunization samples don't have the fold change because they are all healthy donors with no age data or gender data and taken 6 days after the tetanis shot, but it is useful to compare genes with healthy females and males in the healthy and control groups **tetanisImmunizationBlood.csv** is that file.
 
+Lets read in those files with their respective and appropriately described names.
+```{r}
+Alzheimer <- read.csv('both.csv', sep=',', header=T, na.strings=c('',' '))
+Heart_Disease_Males <- read.csv('foldChange_MI_males.csv', sep=',',
+                                header=T, na.strings=c('',' '))
+TetanisImmunity <- read.csv('tetanisImmunizationBlood.csv', sep=',',
+                            header=T, na.strings=c('',' '))
+Overweight_Females_EGCG <- read.csv('foldChange_EGCG.csv', sep=',',
+                                    header=T, na.strings=c('',' '))
+flu_Vaccinated <- read.csv('FoldChange_All.csv', sep=',', header=T,
+                           na.strings=c('',' '))
+iron_toxicity <- read.csv('all-fc-grops.csv', sep=',', header=T, 
+                          na.strings=c('', ' '))
 
 ```
 
+Look at the column names and select the ones needed or that have fold change values to cross compare, or to compare means across samples as with the tetanis data set.
+
+The Alzheimer column names are:
+```{r}
+colnames(Alzheimer)
+```
+
+The heart disease column names are:
+```{r}
+colnames(Heart_Disease_Males)
+```
+
+The tetanis immunization column names are:
+```{r}
+colnames(TetanisImmunity)
+```
+
+The EGCG overweight females column names are:
+```{r}
+colnames(Overweight_Females_EGCG)
+```
+
+The flu vaccinated with antibiotics treatment or not column names are:
+```{r}
+colnames(flu_Vaccinated)
+```
+
+The iron toxicity column names are:
+```{r}
+colnames(iron_toxicity)
+```
 
