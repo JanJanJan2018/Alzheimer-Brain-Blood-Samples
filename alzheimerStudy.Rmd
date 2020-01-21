@@ -2,7 +2,11 @@
 title: "Alzheimers Disease Brain Blood Samples"
 author: "Janis Corona"
 date: "1/17/2020"
-output: pdf_document
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+  word_document: default
 ---
 
 This analysis is done using the NCBI gene expression samples taken from a study that used the middle temporal gyrus side of the brain of frozen samples taken from Alzheimer's patients that totalled 78 samples of control and repeat microarray gene expression results. The file was able to be downloaded and unzipped complete with the platform gene symbol ID already attached. A separate file of the meta information that includes the age, gender, tissue type and disease as Alzheimer's Disease (AD) or control was made from the Series information for each sample. The age range for these samples of healthy and AD patients is from 70-95 years of age.
@@ -368,8 +372,9 @@ The heart disease column names are:
 colnames(Heart_Disease_Males)
 ```
 
-The tetanis immunization column names are:
+The tetanis immunization after six days taken from their blood has the following column names:
 ```{r}
+
 colnames(TetanisImmunity)
 ```
 
@@ -378,13 +383,148 @@ The EGCG overweight females column names are:
 colnames(Overweight_Females_EGCG)
 ```
 
-The flu vaccinated with antibiotics treatment or not column names are:
+The flu vaccinated (treated with antibiotics treatment or not as 't' or 'nt' respectively) for each of the initial day 0, day 3, day 7, and day 21 profiles from three treated and three not treated samples have the following column names:
 ```{r}
 colnames(flu_Vaccinated)
 ```
 
-The iron toxicity column names are:
+The iron toxicity study put the males and females into three groups of the genotypes associated with hemochromatosis or iron toxicity. It also included healthy males and females to compare to. The fold change values are for the groups each compared to the healthy groups by gender by all three groups 'overall' and by each of the 3 groups separately. The iron toxicity column names are:
 ```{r}
 colnames(iron_toxicity)
 ```
+
+
+In the interest of being interesting, these tables have all the original samples in each respective table for that disease group. There are some healthy samples in some such as healthy overweight females before taking EGCG, non-Alzheimer's males and females, healthy Russian males without heart disease, and healthy females and males who do not have iron toxicity relative to the iron toxicity study. There are some studies that do not have healthy controls nor separation by gender such as the tetanis immunity and flu vaccinated samples.
+
+Since the tetanis immunized samples don't have a control or healthy group to compare to which haven't been immunized, let us compare it to the samples of healthy overweight females, healthy Russian males, healthy females and males without iron toxicity, and flu vaccinated not treated with antibiotics and flu vaccinated treated with antibiotics. The values in the tetanis immunized samples have a very high range for some genes and doesn't get lower than 0.08 for any gene. We will compare the fields of each table that has the __mean__ values across sample for each __gene__ in that group by creating a table with those means.
+```{r}
+tet_mean <- TetanisImmunity[,c(2,9)] #gene and tetanis immunized mean
+iron_mean <- iron_toxicity[,c(1,8:11)]#gene, healthy female, healthy male
+# iron toxic females, iron toxic males
+flu_7day <- flu_Vaccinated[,c(1,22,17)] #gene, not treated, treated 
+EGCG_females <- Overweight_Females_EGCG[,c(1,6:8)]#gene, pre,post EGCG,
+# post EGCG+vitamin C+Fish Oil
+MI_healthy_mean <- Heart_Disease_Males[,c(1,4,5)]#gene, healthy males, 
+# MI males
+alz_means <- Alzheimer[,c(1:5)]#gene, female AD, female control, male AD,
+# male control
+```
+
+Let us first compare the tetanis immunized to the healthy females no iron toxicity, healthy males no iron toxicity, overweight females EGCG, healthy males no MI, healthy AD females, and healthy AD males.
+
+Gather only the healthy females and males of those studies.
+```{r}
+healthy_iron <- iron_mean[,c(1:3)]
+Healthy_EGCG_females <- EGCG_females #all are healthy
+healthy_MImales <- MI_healthy_mean[,1:2]
+healthy_AD <- alz_means[,c(1,3,5)]
+
+dim(healthy_iron)
+colnames(healthy_iron)[2:3] <- gsub('healthy','iron_healthy_',colnames(healthy_iron)[2:3])
+colnames(healthy_iron)
+
+dim(Healthy_EGCG_females)
+colnames(Healthy_EGCG_females)[2:4] <- paste('overweight_females_',colnames(Healthy_EGCG_females)[2:4],sep='')
+colnames(Healthy_EGCG_females)
+
+dim(healthy_MImales)
+colnames(healthy_MImales)[2] <- paste('MI_study_',colnames(healthy_MImales)[2], sep='')
+colnames(healthy_MImales)
+
+dim(healthy_AD)
+colnames(healthy_AD)[2:3] <- gsub('_control1_','_no_AD_',colnames(healthy_AD)[2:3])
+colnames(healthy_AD)
+
+dim(tet_mean)
+colnames(tet_mean)
+```
+
+The above tables all have a differing amount of genes in each table, so we need to merge the tables by genes in common to compare. The gene field is the 'X' field in these tables listed immediately above.We need to merge them all to the tetanis table, tet_mean, to compare with tetanis immunity gene expression values over 6 days. 
+```{r}
+healthy0 <- merge(tet_mean, healthy_iron, by.x='GENE_SYMBOL', by.y='X')
+dim(healthy0)
+
+healthy1 <- merge(healthy0, Healthy_EGCG_females, by.x='GENE_SYMBOL', by.y='X')
+dim(healthy1)
+
+healthy2 <- merge(healthy1, healthy_MImales, by.x='GENE_SYMBOL', by.y='X')
+dim(healthy2)
+
+healthy3 <- merge(healthy2, healthy_AD, by.x='GENE_SYMBOL', by.y='X')
+dim(healthy3)
+
+colnames(healthy3)
+```
+
+```{r}
+head(healthy3)
+
+```
+
+We need to use dplyr to analyze this data as is for the healthy samples compared to the tetanis samples.
+```{r, error=FALSE, message=FALSE, warning=FALSE}
+library(dplyr)
+```
+
+Get the fold change 'FC' values for the between samples of genes using the healthy3 table.
+```{r}
+FC0 <- healthy3 %>% mutate(FC_iron_fem = Tetanis_Means/iron_healthy_Female_Mean)
+
+FC1 <- FC0 %>% mutate(FC_iron_mal = Tetanis_Means/iron_healthy_Male_Mean)
+
+FC2 <- FC1 %>% mutate(FC_heavy_fems_no_EGCG = Tetanis_Means/overweight_females_Pre_Means)
+
+FC3 <- FC2 %>% mutate(FC_heavy_fems_EGCG = Tetanis_Means/overweight_females_Post_EGCG_Means)
+
+FC4 <- FC3 %>% mutate(FC_heavy_fems_EGCG_plus = Tetanis_Means/overweight_females_Post_EGCG_Quercentin_Means)
+
+FC5 <- FC4 %>% mutate(FC_healthyMI_males = Tetanis_Means/MI_study_HealthyMale_Means)
+
+FC6 <- FC5 %>% mutate(FC_fems_noAD = Tetanis_Means/Females_no_AD_Mean)
+FC7 <- FC6 %>% mutate(FC_mals_noAD = Tetanis_Means/males_no_AD_Mean)
+
+healthy_tetanis_FCs <- FC7
+dim(healthy_tetanis_FCs)
+colnames(healthy_tetanis_FCs)
+```
+
+There are 13,193 genes to compare fold change values of tetanis immunized samples to the healthy control samples from the combined studies.
+```{r}
+write.csv(healthy_tetanis_FCs,'healthy_tetanis_FCs.csv', row.names=FALSE)
+```
+
+
+
+Now, compare the tetanis immunized to the flu vaccinated samples treated and not treated with antibiotics. The flu gene samples seemed to have the most changes in values after 7 days of receiving the flu immunization and the antibiotic or no antibiotic addition. This is why the flu immunizations for day 7 means were selected. Only the tet_mean and flu_7day tables will be used for genes in common as neither has the gender information attached.
+```{r}
+dim(tet_mean);colnames(tet_mean)
+dim(flu_7day);colnames(flu_7day)
+
+```
+
+Merge these two tables of the tetanis and flu not treated (NT7 prefix) or treated (T7 prefix) means.
+```{r}
+tet_flu_immune <- merge(tet_mean, flu_7day, by.x='GENE_SYMBOL', by.y='Gene')
+dim(tet_flu_immune)
+colnames(tet_flu_immune)
+```
+
+Now for the fold change values between the Tetanis_Means and the flu immunization means with/without added antibiotics treatment, dplyr will be used to get that information.
+```{r}
+tetanis_flu_FCs <- tet_flu_immune %>% mutate(FC_tet_flu_nt7 = Tetanis_Means/NT7_Mean)
+
+tetanis_flu_FCs1 <- tetanis_flu_FCs %>% mutate(FC_tet_flu_t7 = Tetanis_Means/T7_Mean)
+
+dim(tetanis_flu_FCs1)
+colnames(tetanis_flu_FCs1)
+head(tetanis_flu_FCs1)
+```
+
+```{r}
+write.csv(tetanis_flu_FCs1, 'tetanis_flu_FCs.csv', row.names=FALSE)
+```
+
+
+
+
 
