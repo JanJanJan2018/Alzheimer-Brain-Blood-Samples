@@ -2055,6 +2055,7 @@ to_plot</code></pre>
 <p>The females in the overweight study, the females in the flu study, and the females in the iron toxicity study could be cross compared to the females in this study on Alzheimer female patients. The males in the heart disease study, iron toxicity study, and flu study could be compared to the males in this Alzheimer study. And both genders from those studies could also be compared to both genders in this study.</p>
 <p>The plan is to get the genes these studies all have in common and compare between the genders on fold change stats of those genes. That being iron toxicity fold change, and flu vaccinated fold change compared to added antibiotics (not compared to healthy non vaccinated patients) for comparison with Alzheimer patients. Overweight females using EGCG for weight loss is exclusive to the female comparisons, and the heart disease study was exclusive to male patients.</p>
 <p>This study’s data on fold change, means, and sample values is the <strong>both.csv</strong> file. The flu study had days 0,3,7, and 21 comparisons and both genders in the <strong>FoldChange_All.csv</strong> file for that study. The iron toxicity fold change stats is in the <strong>all-fc-grops.csv</strong> file for the hemochromatosis study on both genders. The overweight females using EGCG to diet with the included fold change values for those using EGCG or EGCG+vitamin C+fish oil is in the <strong>foldChange_EGCG.csv</strong> file. And the males who have heart disease of type MI is in the file <strong>foldChange_MI_males.csv</strong>. The tetanis immunization samples don’t have the fold change because they are all healthy donors with no age data or gender data and taken 6 days after the tetanis shot, but it is useful to compare genes with healthy females and males in the healthy and control groups <strong>tetanisImmunizationBlood.csv</strong> is that file.</p>
+<hr />
 <p>Lets read in those files with their respective and appropriately described names.</p>
 <pre class="r"><code>Alzheimer &lt;- read.csv(&#39;both.csv&#39;, sep=&#39;,&#39;, header=T, na.strings=c(&#39;&#39;,&#39; &#39;))
 Heart_Disease_Males &lt;- read.csv(&#39;foldChange_MI_males.csv&#39;, sep=&#39;,&#39;,
@@ -2069,47 +2070,68 @@ iron_toxicity &lt;- read.csv(&#39;all-fc-grops.csv&#39;, sep=&#39;,&#39;, header
                           na.strings=c(&#39;&#39;, &#39; &#39;))</code></pre>
 <p>Look at the column names and select the ones needed or that have fold change values to cross compare, or to compare means across samples as with the tetanis data set.</p>
 <p>The Alzheimer column names are:</p>
-<pre class="r"><code>colnames(Alzheimer)</code></pre>
-<pre><code>##  [1] &quot;X&quot;                     &quot;Females_AD1_Mean&quot;      &quot;Females_control1_Mean&quot;
-##  [4] &quot;males_AD1_Mean&quot;        &quot;males_control1_Mean&quot;   &quot;FC_fem_ctrl_AD&quot;       
-##  [7] &quot;FC_male_ctrl_AD&quot;       &quot;GSM2973262&quot;            &quot;GSM2973263&quot;           
-## [10] &quot;GSM2973264&quot;            &quot;GSM2973265&quot;            &quot;GSM2973266&quot;           
-## [13] &quot;GSM2973267&quot;            &quot;GSM2973268&quot;            &quot;GSM2973269&quot;           
-## [16] &quot;GSM2973270&quot;            &quot;GSM2973271&quot;            &quot;GSM2973272&quot;           
-## [19] &quot;GSM2973273&quot;            &quot;GSM2973274&quot;            &quot;GSM2973275&quot;           
-## [22] &quot;GSM2973276&quot;            &quot;GSM2973277&quot;            &quot;GSM2973278&quot;           
-## [25] &quot;GSM2973279&quot;            &quot;GSM2973280&quot;            &quot;GSM2973281&quot;           
-## [28] &quot;GSM2973282&quot;            &quot;GSM2973283&quot;            &quot;GSM2973284&quot;           
-## [31] &quot;GSM2973285&quot;            &quot;GSM2973286&quot;            &quot;GSM2973287&quot;           
-## [34] &quot;GSM2973288&quot;            &quot;GSM2973289&quot;            &quot;GSM2973290&quot;           
-## [37] &quot;GSM2973291&quot;            &quot;GSM2973292&quot;            &quot;GSM2973293&quot;           
-## [40] &quot;GSM2973294&quot;            &quot;GSM2973295&quot;            &quot;GSM2973296&quot;           
-## [43] &quot;GSM2973297&quot;            &quot;GSM2973298&quot;            &quot;GSM2973299&quot;           
-## [46] &quot;GSM2973300&quot;            &quot;GSM2973301&quot;            &quot;GSM2973302&quot;           
-## [49] &quot;GSM2973303&quot;            &quot;GSM2973304&quot;            &quot;GSM2973305&quot;           
-## [52] &quot;GSM2973306&quot;            &quot;GSM2973307&quot;            &quot;GSM2973308&quot;           
-## [55] &quot;GSM2973309&quot;            &quot;GSM2973310&quot;            &quot;GSM2973311&quot;           
-## [58] &quot;GSM2973312&quot;            &quot;GSM2973313&quot;            &quot;GSM2973314&quot;           
-## [61] &quot;GSM2973315&quot;            &quot;GSM2973316&quot;            &quot;GSM2973317&quot;           
-## [64] &quot;GSM2973318&quot;            &quot;GSM2973319&quot;            &quot;GSM2973320&quot;           
-## [67] &quot;GSM2973321&quot;            &quot;GSM2973322&quot;            &quot;GSM2973323&quot;           
-## [70] &quot;GSM2973324&quot;            &quot;GSM2973325&quot;            &quot;GSM2973326&quot;           
-## [73] &quot;GSM2973327&quot;            &quot;GSM2973328&quot;            &quot;GSM2973329&quot;           
-## [76] &quot;GSM2973330&quot;            &quot;GSM2973331&quot;            &quot;GSM2973332&quot;           
-## [79] &quot;GSM2973333&quot;            &quot;GSM2973334&quot;            &quot;GSM2973335&quot;           
-## [82] &quot;GSM2973336&quot;            &quot;GSM2973337&quot;            &quot;GSM2973338&quot;           
-## [85] &quot;GSM2973339&quot;</code></pre>
+<pre class="r"><code>Alzheimer1 &lt;- Alzheimer
+colnames(Alzheimer1)[c(2:85)] &lt;- paste(&#39;Alz_&#39;,
+                                       colnames(Alzheimer1)[c(2:85)],
+                                      sep=&#39;&#39;)
+colnames(Alzheimer1)</code></pre>
+<pre><code>##  [1] &quot;X&quot;                         &quot;Alz_Females_AD1_Mean&quot;     
+##  [3] &quot;Alz_Females_control1_Mean&quot; &quot;Alz_males_AD1_Mean&quot;       
+##  [5] &quot;Alz_males_control1_Mean&quot;   &quot;Alz_FC_fem_ctrl_AD&quot;       
+##  [7] &quot;Alz_FC_male_ctrl_AD&quot;       &quot;Alz_GSM2973262&quot;           
+##  [9] &quot;Alz_GSM2973263&quot;            &quot;Alz_GSM2973264&quot;           
+## [11] &quot;Alz_GSM2973265&quot;            &quot;Alz_GSM2973266&quot;           
+## [13] &quot;Alz_GSM2973267&quot;            &quot;Alz_GSM2973268&quot;           
+## [15] &quot;Alz_GSM2973269&quot;            &quot;Alz_GSM2973270&quot;           
+## [17] &quot;Alz_GSM2973271&quot;            &quot;Alz_GSM2973272&quot;           
+## [19] &quot;Alz_GSM2973273&quot;            &quot;Alz_GSM2973274&quot;           
+## [21] &quot;Alz_GSM2973275&quot;            &quot;Alz_GSM2973276&quot;           
+## [23] &quot;Alz_GSM2973277&quot;            &quot;Alz_GSM2973278&quot;           
+## [25] &quot;Alz_GSM2973279&quot;            &quot;Alz_GSM2973280&quot;           
+## [27] &quot;Alz_GSM2973281&quot;            &quot;Alz_GSM2973282&quot;           
+## [29] &quot;Alz_GSM2973283&quot;            &quot;Alz_GSM2973284&quot;           
+## [31] &quot;Alz_GSM2973285&quot;            &quot;Alz_GSM2973286&quot;           
+## [33] &quot;Alz_GSM2973287&quot;            &quot;Alz_GSM2973288&quot;           
+## [35] &quot;Alz_GSM2973289&quot;            &quot;Alz_GSM2973290&quot;           
+## [37] &quot;Alz_GSM2973291&quot;            &quot;Alz_GSM2973292&quot;           
+## [39] &quot;Alz_GSM2973293&quot;            &quot;Alz_GSM2973294&quot;           
+## [41] &quot;Alz_GSM2973295&quot;            &quot;Alz_GSM2973296&quot;           
+## [43] &quot;Alz_GSM2973297&quot;            &quot;Alz_GSM2973298&quot;           
+## [45] &quot;Alz_GSM2973299&quot;            &quot;Alz_GSM2973300&quot;           
+## [47] &quot;Alz_GSM2973301&quot;            &quot;Alz_GSM2973302&quot;           
+## [49] &quot;Alz_GSM2973303&quot;            &quot;Alz_GSM2973304&quot;           
+## [51] &quot;Alz_GSM2973305&quot;            &quot;Alz_GSM2973306&quot;           
+## [53] &quot;Alz_GSM2973307&quot;            &quot;Alz_GSM2973308&quot;           
+## [55] &quot;Alz_GSM2973309&quot;            &quot;Alz_GSM2973310&quot;           
+## [57] &quot;Alz_GSM2973311&quot;            &quot;Alz_GSM2973312&quot;           
+## [59] &quot;Alz_GSM2973313&quot;            &quot;Alz_GSM2973314&quot;           
+## [61] &quot;Alz_GSM2973315&quot;            &quot;Alz_GSM2973316&quot;           
+## [63] &quot;Alz_GSM2973317&quot;            &quot;Alz_GSM2973318&quot;           
+## [65] &quot;Alz_GSM2973319&quot;            &quot;Alz_GSM2973320&quot;           
+## [67] &quot;Alz_GSM2973321&quot;            &quot;Alz_GSM2973322&quot;           
+## [69] &quot;Alz_GSM2973323&quot;            &quot;Alz_GSM2973324&quot;           
+## [71] &quot;Alz_GSM2973325&quot;            &quot;Alz_GSM2973326&quot;           
+## [73] &quot;Alz_GSM2973327&quot;            &quot;Alz_GSM2973328&quot;           
+## [75] &quot;Alz_GSM2973329&quot;            &quot;Alz_GSM2973330&quot;           
+## [77] &quot;Alz_GSM2973331&quot;            &quot;Alz_GSM2973332&quot;           
+## [79] &quot;Alz_GSM2973333&quot;            &quot;Alz_GSM2973334&quot;           
+## [81] &quot;Alz_GSM2973335&quot;            &quot;Alz_GSM2973336&quot;           
+## [83] &quot;Alz_GSM2973337&quot;            &quot;Alz_GSM2973338&quot;           
+## [85] &quot;Alz_GSM2973339&quot;</code></pre>
 <p>The heart disease column names are:</p>
-<pre class="r"><code>colnames(Heart_Disease_Males)</code></pre>
-<pre><code>##  [1] &quot;X&quot;                        &quot;Symbol&quot;                  
-##  [3] &quot;FC_MI_males&quot;              &quot;HealthyMale_Means&quot;       
-##  [5] &quot;MI_Male_Means&quot;            &quot;healthy_Males_GSM4205364&quot;
-##  [7] &quot;healthy_Males_GSM4205363&quot; &quot;healthy_Males_GSM4205362&quot;
-##  [9] &quot;healthy_Males_GSM4205361&quot; &quot;healthy_Males_GSM4205360&quot;
-## [11] &quot;healthy_Males_GSM4205359&quot; &quot;MI_Males_GSM4205358&quot;     
-## [13] &quot;MI_Males_GSM4205357&quot;      &quot;MI_Males_GSM4205356&quot;     
-## [15] &quot;MI_Males_GSM4205355&quot;      &quot;MI_Males_GSM4205354&quot;     
-## [17] &quot;MI_Males_GSM4205353&quot;</code></pre>
+<pre class="r"><code>Heart_Disease_Males1 &lt;- Heart_Disease_Males
+colnames(Heart_Disease_Males1)[c(4,6:11)] &lt;- gsub(&#39;Male&#39;, &#39;MI_Male&#39;,
+                      colnames(Heart_Disease_Males1)[c(4,6:11)])
+Heart_Disease_Males1 &lt;- Heart_Disease_Males1[,-1]
+colnames(Heart_Disease_Males1)</code></pre>
+<pre><code>##  [1] &quot;Symbol&quot;                      &quot;FC_MI_males&quot;                
+##  [3] &quot;HealthyMI_Male_Means&quot;        &quot;MI_Male_Means&quot;              
+##  [5] &quot;healthy_MI_Males_GSM4205364&quot; &quot;healthy_MI_Males_GSM4205363&quot;
+##  [7] &quot;healthy_MI_Males_GSM4205362&quot; &quot;healthy_MI_Males_GSM4205361&quot;
+##  [9] &quot;healthy_MI_Males_GSM4205360&quot; &quot;healthy_MI_Males_GSM4205359&quot;
+## [11] &quot;MI_Males_GSM4205358&quot;         &quot;MI_Males_GSM4205357&quot;        
+## [13] &quot;MI_Males_GSM4205356&quot;         &quot;MI_Males_GSM4205355&quot;        
+## [15] &quot;MI_Males_GSM4205354&quot;         &quot;MI_Males_GSM4205353&quot;</code></pre>
 <p>The tetanis immunization after six days taken from their blood has the following column names:</p>
 <pre class="r"><code>colnames(TetanisImmunity)</code></pre>
 <pre><code>## [1] &quot;X&quot;             &quot;GENE_SYMBOL&quot;   &quot;GSM1443061&quot;    &quot;GSM1443062&quot;   
@@ -2122,76 +2144,378 @@ iron_toxicity &lt;- read.csv(&#39;all-fc-grops.csv&#39;, sep=&#39;,&#39;, header
 <p>Take the log2 scale of the tetanis data set to make the values the same scale as the flu vaccinated and other samples that used log2 scale.</p>
 <pre class="r"><code>TetanisImmunity1 &lt;- log2(TetanisImmunity[,3:9]+1)#avoid negative values
 TetanisImmunity1$GENE_SYMBOL &lt;- TetanisImmunity$GENE_SYMBOL
-min(TetanisImmunity1[,1:7])</code></pre>
+min(TetanisImmunity1[,1:6])</code></pre>
 <pre><code>## [1] 0.02856915</code></pre>
-<pre class="r"><code>max(TetanisImmunity1[,1:7])</code></pre>
+<pre class="r"><code>max(TetanisImmunity1[,1:6])</code></pre>
 <pre><code>## [1] 32.98625</code></pre>
+<pre class="r"><code>Tetanis_Immunity1 &lt;- TetanisImmunity1[,c(8,7,1:6)]
+colnames(Tetanis_Immunity1)[3:8] &lt;- paste(&#39;tetanis_&#39;,
+                    colnames(Tetanis_Immunity1)[3:8], sep=&#39;&#39;)
+colnames(Tetanis_Immunity1)</code></pre>
+<pre><code>## [1] &quot;GENE_SYMBOL&quot;        &quot;Tetanis_Means&quot;      &quot;tetanis_GSM1443061&quot;
+## [4] &quot;tetanis_GSM1443062&quot; &quot;tetanis_GSM1443063&quot; &quot;tetanis_GSM1443064&quot;
+## [7] &quot;tetanis_GSM1443065&quot; &quot;tetanis_GSM1443066&quot;</code></pre>
 <p>The EGCG overweight females column names are:</p>
-<pre class="r"><code>colnames(Overweight_Females_EGCG)</code></pre>
+<pre class="r"><code>Overweight_Females_EGCG1 &lt;- Overweight_Females_EGCG
+colnames(Overweight_Females_EGCG1)[9:36] &lt;- paste(&#39;EGCG&#39;,                                                  colnames(Overweight_Females_EGCG1[9:36]),
+                                                  sep=&#39;_&#39;)
+colnames(Overweight_Females_EGCG1)</code></pre>
 <pre><code>##  [1] &quot;X&quot;                          &quot;FC_egcg_quer&quot;              
 ##  [3] &quot;FC_egcg&quot;                    &quot;DE_EGCG&quot;                   
 ##  [5] &quot;DE_Quercentin&quot;              &quot;Pre_Means&quot;                 
 ##  [7] &quot;Post_EGCG_Means&quot;            &quot;Post_EGCG_Quercentin_Means&quot;
-##  [9] &quot;pre_GSM1923000&quot;             &quot;pre_GSM1923004&quot;            
-## [11] &quot;pre_GSM1923010&quot;             &quot;pre_GSM1923012&quot;            
-## [13] &quot;pre_GSM1923007&quot;             &quot;pre_GSM1923020&quot;            
-## [15] &quot;pre_GSM192998&quot;              &quot;pre_GSM1922995&quot;            
-## [17] &quot;pre_GSM1923002&quot;             &quot;pre_GSM1923008&quot;            
-## [19] &quot;pre_GSM1923015&quot;             &quot;pre_GSM1923018&quot;            
-## [21] &quot;pre_GSM1923022&quot;             &quot;pre_GSM1923017&quot;            
-## [23] &quot;post_EG_GSM1923001&quot;         &quot;post_EG_GSM1923005&quot;        
-## [25] &quot;post_EG_GSM1923011&quot;         &quot;post_EG_GSM1923013&quot;        
-## [27] &quot;post_EG_GSM1923021&quot;         &quot;post_EG_GSM1923006&quot;        
-## [29] &quot;post_EG_GSM1923014&quot;         &quot;post_EQ_GSM192996&quot;         
-## [31] &quot;post_EQ_GSM1923003&quot;         &quot;post_EQ_GSM1923009&quot;        
-## [33] &quot;post_EQ_GSM1923016&quot;         &quot;post_EQ_GSM1923019&quot;        
-## [35] &quot;post_EQ_GSM1923023&quot;         &quot;post_EQ_GSM192997&quot;</code></pre>
+##  [9] &quot;EGCG_pre_GSM1923000&quot;        &quot;EGCG_pre_GSM1923004&quot;       
+## [11] &quot;EGCG_pre_GSM1923010&quot;        &quot;EGCG_pre_GSM1923012&quot;       
+## [13] &quot;EGCG_pre_GSM1923007&quot;        &quot;EGCG_pre_GSM1923020&quot;       
+## [15] &quot;EGCG_pre_GSM192998&quot;         &quot;EGCG_pre_GSM1922995&quot;       
+## [17] &quot;EGCG_pre_GSM1923002&quot;        &quot;EGCG_pre_GSM1923008&quot;       
+## [19] &quot;EGCG_pre_GSM1923015&quot;        &quot;EGCG_pre_GSM1923018&quot;       
+## [21] &quot;EGCG_pre_GSM1923022&quot;        &quot;EGCG_pre_GSM1923017&quot;       
+## [23] &quot;EGCG_post_EG_GSM1923001&quot;    &quot;EGCG_post_EG_GSM1923005&quot;   
+## [25] &quot;EGCG_post_EG_GSM1923011&quot;    &quot;EGCG_post_EG_GSM1923013&quot;   
+## [27] &quot;EGCG_post_EG_GSM1923021&quot;    &quot;EGCG_post_EG_GSM1923006&quot;   
+## [29] &quot;EGCG_post_EG_GSM1923014&quot;    &quot;EGCG_post_EQ_GSM192996&quot;    
+## [31] &quot;EGCG_post_EQ_GSM1923003&quot;    &quot;EGCG_post_EQ_GSM1923009&quot;   
+## [33] &quot;EGCG_post_EQ_GSM1923016&quot;    &quot;EGCG_post_EQ_GSM1923019&quot;   
+## [35] &quot;EGCG_post_EQ_GSM1923023&quot;    &quot;EGCG_post_EQ_GSM192997&quot;</code></pre>
 <p>The flu vaccinated (treated with antibiotics treatment or not as ‘t’ or ‘nt’ respectively) for each of the initial day 0, day 3, day 7, and day 21 profiles from three treated and three not treated samples have the following column names:</p>
-<pre class="r"><code>colnames(flu_Vaccinated)</code></pre>
-<pre><code>##  [1] &quot;Gene&quot;                              &quot;FC_t1&quot;                            
-##  [3] &quot;FC_t3&quot;                             &quot;FC_t7&quot;                            
-##  [5] &quot;FC_t21&quot;                            &quot;FC_nt1&quot;                           
-##  [7] &quot;FC_nt3&quot;                            &quot;FC_nt7&quot;                           
-##  [9] &quot;FC_nt21&quot;                           &quot;FCB_1&quot;                            
-## [11] &quot;FCB_3&quot;                             &quot;FCB_7&quot;                            
-## [13] &quot;FCB_21&quot;                            &quot;T0_Mean&quot;                          
-## [15] &quot;T1_Mean&quot;                           &quot;T3_Mean&quot;                          
-## [17] &quot;T7_Mean&quot;                           &quot;T21_Mean&quot;                         
-## [19] &quot;NT0_Mean&quot;                          &quot;NT1_Mean&quot;                         
-## [21] &quot;NT3_Mean&quot;                          &quot;NT7_Mean&quot;                         
-## [23] &quot;NT21_Mean&quot;                         &quot;GSM3409106_29_day_0&quot;              
-## [25] &quot;GSM3409107_29_day_1&quot;               &quot;GSM3409108_29_day_3&quot;              
-## [27] &quot;GSM3409004_29_day_7&quot;               &quot;GSM3409105_29_day_21_screening&quot;   
-## [29] &quot;GSM3409006_30._day_0&quot;              &quot;GSM3409007_30_day_1&quot;              
-## [31] &quot;GSM3409008_30_day_3&quot;               &quot;GSM3409009_30_day_7&quot;              
-## [33] &quot;GSM3409005_30_day_21_screening&quot;    &quot;GSM3409013_05_.day_0&quot;             
-## [35] &quot;GSM3409014_05_day_1&quot;               &quot;GSM3409015_05_day_3&quot;              
-## [37] &quot;GSM3409016_05_day_7&quot;               &quot;GSM3409012_05_day_21_screening&quot;   
-## [39] &quot;GSM3409161_33_day_0_no&quot;            &quot;GSM3409162_33_day_1_no&quot;           
-## [41] &quot;GSM3409163_33_day_3_no&quot;            &quot;GSM3409111_33._day_7_no&quot;          
-## [43] &quot;GSM3409160_33_day_21_screening_no&quot; &quot;GSM3409124_36_day_0_no&quot;           
-## [45] &quot;GSM3409125_36_day_1_no&quot;            &quot;GSM3409126_36_day_3_no&quot;           
-## [47] &quot;GSM3409127_36_day_7_no&quot;            &quot;GSM3409123_36_day_21_screening_no&quot;
-## [49] &quot;GSM3409135_38_day_0_no&quot;            &quot;GSM3409136_38_day_1_no&quot;           
-## [51] &quot;GSM3409137_38_day_3_no&quot;            &quot;GSM3409138_38_day_7_no&quot;           
-## [53] &quot;GSM3409134_38_day_21_screening_no&quot;</code></pre>
+<pre class="r"><code>flu_Vaccinated1 &lt;- flu_Vaccinated
+colnames(flu_Vaccinated1)[24:53] &lt;- paste(&#39;flu&#39;,colnames(flu_Vaccinated1)[24:53],
+                                     sep=&#39;_&#39;)
+colnames(flu_Vaccinated1)</code></pre>
+<pre><code>##  [1] &quot;Gene&quot;                                 
+##  [2] &quot;FC_t1&quot;                                
+##  [3] &quot;FC_t3&quot;                                
+##  [4] &quot;FC_t7&quot;                                
+##  [5] &quot;FC_t21&quot;                               
+##  [6] &quot;FC_nt1&quot;                               
+##  [7] &quot;FC_nt3&quot;                               
+##  [8] &quot;FC_nt7&quot;                               
+##  [9] &quot;FC_nt21&quot;                              
+## [10] &quot;FCB_1&quot;                                
+## [11] &quot;FCB_3&quot;                                
+## [12] &quot;FCB_7&quot;                                
+## [13] &quot;FCB_21&quot;                               
+## [14] &quot;T0_Mean&quot;                              
+## [15] &quot;T1_Mean&quot;                              
+## [16] &quot;T3_Mean&quot;                              
+## [17] &quot;T7_Mean&quot;                              
+## [18] &quot;T21_Mean&quot;                             
+## [19] &quot;NT0_Mean&quot;                             
+## [20] &quot;NT1_Mean&quot;                             
+## [21] &quot;NT3_Mean&quot;                             
+## [22] &quot;NT7_Mean&quot;                             
+## [23] &quot;NT21_Mean&quot;                            
+## [24] &quot;flu_GSM3409106_29_day_0&quot;              
+## [25] &quot;flu_GSM3409107_29_day_1&quot;              
+## [26] &quot;flu_GSM3409108_29_day_3&quot;              
+## [27] &quot;flu_GSM3409004_29_day_7&quot;              
+## [28] &quot;flu_GSM3409105_29_day_21_screening&quot;   
+## [29] &quot;flu_GSM3409006_30._day_0&quot;             
+## [30] &quot;flu_GSM3409007_30_day_1&quot;              
+## [31] &quot;flu_GSM3409008_30_day_3&quot;              
+## [32] &quot;flu_GSM3409009_30_day_7&quot;              
+## [33] &quot;flu_GSM3409005_30_day_21_screening&quot;   
+## [34] &quot;flu_GSM3409013_05_.day_0&quot;             
+## [35] &quot;flu_GSM3409014_05_day_1&quot;              
+## [36] &quot;flu_GSM3409015_05_day_3&quot;              
+## [37] &quot;flu_GSM3409016_05_day_7&quot;              
+## [38] &quot;flu_GSM3409012_05_day_21_screening&quot;   
+## [39] &quot;flu_GSM3409161_33_day_0_no&quot;           
+## [40] &quot;flu_GSM3409162_33_day_1_no&quot;           
+## [41] &quot;flu_GSM3409163_33_day_3_no&quot;           
+## [42] &quot;flu_GSM3409111_33._day_7_no&quot;          
+## [43] &quot;flu_GSM3409160_33_day_21_screening_no&quot;
+## [44] &quot;flu_GSM3409124_36_day_0_no&quot;           
+## [45] &quot;flu_GSM3409125_36_day_1_no&quot;           
+## [46] &quot;flu_GSM3409126_36_day_3_no&quot;           
+## [47] &quot;flu_GSM3409127_36_day_7_no&quot;           
+## [48] &quot;flu_GSM3409123_36_day_21_screening_no&quot;
+## [49] &quot;flu_GSM3409135_38_day_0_no&quot;           
+## [50] &quot;flu_GSM3409136_38_day_1_no&quot;           
+## [51] &quot;flu_GSM3409137_38_day_3_no&quot;           
+## [52] &quot;flu_GSM3409138_38_day_7_no&quot;           
+## [53] &quot;flu_GSM3409134_38_day_21_screening_no&quot;</code></pre>
 <p>The iron toxicity study put the males and females into three groups of the genotypes associated with hemochromatosis or iron toxicity. It also included healthy males and females to compare to. The fold change values are for the groups each compared to the healthy groups by gender by all three groups ‘overall’ and by each of the 3 groups separately. The iron toxicity column names are:</p>
-<pre class="r"><code>colnames(iron_toxicity)</code></pre>
-<pre><code>##  [1] &quot;X&quot;                  &quot;G1M_Mean&quot;           &quot;G2M_Mean&quot;          
-##  [4] &quot;G3M_Mean&quot;           &quot;G1F_Mean&quot;           &quot;G2F_Mean&quot;          
-##  [7] &quot;G3F_Mean&quot;           &quot;healthyFemale_Mean&quot; &quot;healthyMale_Mean&quot;  
-## [10] &quot;hemoFemale_Mean&quot;    &quot;hemoMale_Mean&quot;      &quot;FC_1m&quot;             
-## [13] &quot;FC_2m&quot;              &quot;FC_3m&quot;              &quot;FC_1F&quot;             
-## [16] &quot;FC_2F&quot;              &quot;FC_3F&quot;              &quot;FC_malesOverall&quot;   
-## [19] &quot;FC_femalesOverall&quot;  &quot;GSM3440208&quot;         &quot;GSM3440209&quot;        
-## [22] &quot;GSM3440210&quot;         &quot;GSM3440211&quot;         &quot;GSM3440212&quot;        
-## [25] &quot;GSM3440213&quot;         &quot;GSM3440214&quot;         &quot;GSM3440215&quot;        
-## [28] &quot;GSM3440216&quot;         &quot;GSM3440217&quot;         &quot;GSM3440218&quot;        
-## [31] &quot;GSM3440219&quot;         &quot;GSM3440220&quot;         &quot;GSM3440221&quot;        
-## [34] &quot;GSM3440222&quot;         &quot;GSM3440223&quot;         &quot;GSM3440224&quot;        
-## [37] &quot;GSM3440225&quot;         &quot;GSM3440226&quot;         &quot;GSM3440227&quot;        
-## [40] &quot;GSM3440228&quot;         &quot;GSM3440229&quot;         &quot;GSM3440230&quot;        
-## [43] &quot;GSM3440231&quot;</code></pre>
+<pre class="r"><code>iron_toxicity1 &lt;- iron_toxicity
+colnames(iron_toxicity1)[c(2:9,12:43)] &lt;- paste(&#39;hemo_&#39;,colnames(iron_toxicity1)[c(2:9,12:43)], 
+                                 sep=&#39;&#39;)
+colnames(iron_toxicity1)[10:11] &lt;- gsub(&#39;hemo&#39;,&#39;hemo_&#39;,colnames(iron_toxicity1)[10:11])
+
+colnames(iron_toxicity1)</code></pre>
+<pre><code>##  [1] &quot;X&quot;                       &quot;hemo_G1M_Mean&quot;          
+##  [3] &quot;hemo_G2M_Mean&quot;           &quot;hemo_G3M_Mean&quot;          
+##  [5] &quot;hemo_G1F_Mean&quot;           &quot;hemo_G2F_Mean&quot;          
+##  [7] &quot;hemo_G3F_Mean&quot;           &quot;hemo_healthyFemale_Mean&quot;
+##  [9] &quot;hemo_healthyMale_Mean&quot;   &quot;hemo_Female_Mean&quot;       
+## [11] &quot;hemo_Male_Mean&quot;          &quot;hemo_FC_1m&quot;             
+## [13] &quot;hemo_FC_2m&quot;              &quot;hemo_FC_3m&quot;             
+## [15] &quot;hemo_FC_1F&quot;              &quot;hemo_FC_2F&quot;             
+## [17] &quot;hemo_FC_3F&quot;              &quot;hemo_FC_malesOverall&quot;   
+## [19] &quot;hemo_FC_femalesOverall&quot;  &quot;hemo_GSM3440208&quot;        
+## [21] &quot;hemo_GSM3440209&quot;         &quot;hemo_GSM3440210&quot;        
+## [23] &quot;hemo_GSM3440211&quot;         &quot;hemo_GSM3440212&quot;        
+## [25] &quot;hemo_GSM3440213&quot;         &quot;hemo_GSM3440214&quot;        
+## [27] &quot;hemo_GSM3440215&quot;         &quot;hemo_GSM3440216&quot;        
+## [29] &quot;hemo_GSM3440217&quot;         &quot;hemo_GSM3440218&quot;        
+## [31] &quot;hemo_GSM3440219&quot;         &quot;hemo_GSM3440220&quot;        
+## [33] &quot;hemo_GSM3440221&quot;         &quot;hemo_GSM3440222&quot;        
+## [35] &quot;hemo_GSM3440223&quot;         &quot;hemo_GSM3440224&quot;        
+## [37] &quot;hemo_GSM3440225&quot;         &quot;hemo_GSM3440226&quot;        
+## [39] &quot;hemo_GSM3440227&quot;         &quot;hemo_GSM3440228&quot;        
+## [41] &quot;hemo_GSM3440229&quot;         &quot;hemo_GSM3440230&quot;        
+## [43] &quot;hemo_GSM3440231&quot;</code></pre>
+<hr />
+<p>The above tables that were just made that added the type of sample study to the NCBI GEO accession ID’s and other fields missing table identifier type are now going to be merged and written to csv to use in other programs or purposes. It will also be added to Kaggle datasets.</p>
+<pre class="r"><code>K0 &lt;- merge(Alzheimer1, Heart_Disease_Males1, by.x=&#39;X&#39;, by.y=&#39;Symbol&#39;)
+K1 &lt;- merge(Tetanis_Immunity1, K0, by.x=&#39;GENE_SYMBOL&#39;, by.y=&#39;X&#39;)
+K2 &lt;- merge(K1, flu_Vaccinated1, by.x=&#39;GENE_SYMBOL&#39;, by.y=&#39;Gene&#39;)
+K3 &lt;- merge(K2, Overweight_Females_EGCG1, by.x=&#39;GENE_SYMBOL&#39;, by.y=&#39;X&#39;)
+K4 &lt;- merge(K3, iron_toxicity1, by.x=&#39;GENE_SYMBOL&#39;, by.y=&#39;X&#39;)
+
+GSM &lt;- grep(&#39;GSM&#39;,colnames(K4))
+all6samples &lt;- K4[,GSM]
+all6stats &lt;- K4[,-GSM]
+all6 &lt;- cbind(all6stats,all6samples)
+colnames(all6)</code></pre>
+<pre><code>##   [1] &quot;GENE_SYMBOL&quot;                          
+##   [2] &quot;Tetanis_Means&quot;                        
+##   [3] &quot;Alz_Females_AD1_Mean&quot;                 
+##   [4] &quot;Alz_Females_control1_Mean&quot;            
+##   [5] &quot;Alz_males_AD1_Mean&quot;                   
+##   [6] &quot;Alz_males_control1_Mean&quot;              
+##   [7] &quot;Alz_FC_fem_ctrl_AD&quot;                   
+##   [8] &quot;Alz_FC_male_ctrl_AD&quot;                  
+##   [9] &quot;FC_MI_males&quot;                          
+##  [10] &quot;HealthyMI_Male_Means&quot;                 
+##  [11] &quot;MI_Male_Means&quot;                        
+##  [12] &quot;FC_t1&quot;                                
+##  [13] &quot;FC_t3&quot;                                
+##  [14] &quot;FC_t7&quot;                                
+##  [15] &quot;FC_t21&quot;                               
+##  [16] &quot;FC_nt1&quot;                               
+##  [17] &quot;FC_nt3&quot;                               
+##  [18] &quot;FC_nt7&quot;                               
+##  [19] &quot;FC_nt21&quot;                              
+##  [20] &quot;FCB_1&quot;                                
+##  [21] &quot;FCB_3&quot;                                
+##  [22] &quot;FCB_7&quot;                                
+##  [23] &quot;FCB_21&quot;                               
+##  [24] &quot;T0_Mean&quot;                              
+##  [25] &quot;T1_Mean&quot;                              
+##  [26] &quot;T3_Mean&quot;                              
+##  [27] &quot;T7_Mean&quot;                              
+##  [28] &quot;T21_Mean&quot;                             
+##  [29] &quot;NT0_Mean&quot;                             
+##  [30] &quot;NT1_Mean&quot;                             
+##  [31] &quot;NT3_Mean&quot;                             
+##  [32] &quot;NT7_Mean&quot;                             
+##  [33] &quot;NT21_Mean&quot;                            
+##  [34] &quot;FC_egcg_quer&quot;                         
+##  [35] &quot;FC_egcg&quot;                              
+##  [36] &quot;DE_EGCG&quot;                              
+##  [37] &quot;DE_Quercentin&quot;                        
+##  [38] &quot;Pre_Means&quot;                            
+##  [39] &quot;Post_EGCG_Means&quot;                      
+##  [40] &quot;Post_EGCG_Quercentin_Means&quot;           
+##  [41] &quot;hemo_G1M_Mean&quot;                        
+##  [42] &quot;hemo_G2M_Mean&quot;                        
+##  [43] &quot;hemo_G3M_Mean&quot;                        
+##  [44] &quot;hemo_G1F_Mean&quot;                        
+##  [45] &quot;hemo_G2F_Mean&quot;                        
+##  [46] &quot;hemo_G3F_Mean&quot;                        
+##  [47] &quot;hemo_healthyFemale_Mean&quot;              
+##  [48] &quot;hemo_healthyMale_Mean&quot;                
+##  [49] &quot;hemo_Female_Mean&quot;                     
+##  [50] &quot;hemo_Male_Mean&quot;                       
+##  [51] &quot;hemo_FC_1m&quot;                           
+##  [52] &quot;hemo_FC_2m&quot;                           
+##  [53] &quot;hemo_FC_3m&quot;                           
+##  [54] &quot;hemo_FC_1F&quot;                           
+##  [55] &quot;hemo_FC_2F&quot;                           
+##  [56] &quot;hemo_FC_3F&quot;                           
+##  [57] &quot;hemo_FC_malesOverall&quot;                 
+##  [58] &quot;hemo_FC_femalesOverall&quot;               
+##  [59] &quot;tetanis_GSM1443061&quot;                   
+##  [60] &quot;tetanis_GSM1443062&quot;                   
+##  [61] &quot;tetanis_GSM1443063&quot;                   
+##  [62] &quot;tetanis_GSM1443064&quot;                   
+##  [63] &quot;tetanis_GSM1443065&quot;                   
+##  [64] &quot;tetanis_GSM1443066&quot;                   
+##  [65] &quot;Alz_GSM2973262&quot;                       
+##  [66] &quot;Alz_GSM2973263&quot;                       
+##  [67] &quot;Alz_GSM2973264&quot;                       
+##  [68] &quot;Alz_GSM2973265&quot;                       
+##  [69] &quot;Alz_GSM2973266&quot;                       
+##  [70] &quot;Alz_GSM2973267&quot;                       
+##  [71] &quot;Alz_GSM2973268&quot;                       
+##  [72] &quot;Alz_GSM2973269&quot;                       
+##  [73] &quot;Alz_GSM2973270&quot;                       
+##  [74] &quot;Alz_GSM2973271&quot;                       
+##  [75] &quot;Alz_GSM2973272&quot;                       
+##  [76] &quot;Alz_GSM2973273&quot;                       
+##  [77] &quot;Alz_GSM2973274&quot;                       
+##  [78] &quot;Alz_GSM2973275&quot;                       
+##  [79] &quot;Alz_GSM2973276&quot;                       
+##  [80] &quot;Alz_GSM2973277&quot;                       
+##  [81] &quot;Alz_GSM2973278&quot;                       
+##  [82] &quot;Alz_GSM2973279&quot;                       
+##  [83] &quot;Alz_GSM2973280&quot;                       
+##  [84] &quot;Alz_GSM2973281&quot;                       
+##  [85] &quot;Alz_GSM2973282&quot;                       
+##  [86] &quot;Alz_GSM2973283&quot;                       
+##  [87] &quot;Alz_GSM2973284&quot;                       
+##  [88] &quot;Alz_GSM2973285&quot;                       
+##  [89] &quot;Alz_GSM2973286&quot;                       
+##  [90] &quot;Alz_GSM2973287&quot;                       
+##  [91] &quot;Alz_GSM2973288&quot;                       
+##  [92] &quot;Alz_GSM2973289&quot;                       
+##  [93] &quot;Alz_GSM2973290&quot;                       
+##  [94] &quot;Alz_GSM2973291&quot;                       
+##  [95] &quot;Alz_GSM2973292&quot;                       
+##  [96] &quot;Alz_GSM2973293&quot;                       
+##  [97] &quot;Alz_GSM2973294&quot;                       
+##  [98] &quot;Alz_GSM2973295&quot;                       
+##  [99] &quot;Alz_GSM2973296&quot;                       
+## [100] &quot;Alz_GSM2973297&quot;                       
+## [101] &quot;Alz_GSM2973298&quot;                       
+## [102] &quot;Alz_GSM2973299&quot;                       
+## [103] &quot;Alz_GSM2973300&quot;                       
+## [104] &quot;Alz_GSM2973301&quot;                       
+## [105] &quot;Alz_GSM2973302&quot;                       
+## [106] &quot;Alz_GSM2973303&quot;                       
+## [107] &quot;Alz_GSM2973304&quot;                       
+## [108] &quot;Alz_GSM2973305&quot;                       
+## [109] &quot;Alz_GSM2973306&quot;                       
+## [110] &quot;Alz_GSM2973307&quot;                       
+## [111] &quot;Alz_GSM2973308&quot;                       
+## [112] &quot;Alz_GSM2973309&quot;                       
+## [113] &quot;Alz_GSM2973310&quot;                       
+## [114] &quot;Alz_GSM2973311&quot;                       
+## [115] &quot;Alz_GSM2973312&quot;                       
+## [116] &quot;Alz_GSM2973313&quot;                       
+## [117] &quot;Alz_GSM2973314&quot;                       
+## [118] &quot;Alz_GSM2973315&quot;                       
+## [119] &quot;Alz_GSM2973316&quot;                       
+## [120] &quot;Alz_GSM2973317&quot;                       
+## [121] &quot;Alz_GSM2973318&quot;                       
+## [122] &quot;Alz_GSM2973319&quot;                       
+## [123] &quot;Alz_GSM2973320&quot;                       
+## [124] &quot;Alz_GSM2973321&quot;                       
+## [125] &quot;Alz_GSM2973322&quot;                       
+## [126] &quot;Alz_GSM2973323&quot;                       
+## [127] &quot;Alz_GSM2973324&quot;                       
+## [128] &quot;Alz_GSM2973325&quot;                       
+## [129] &quot;Alz_GSM2973326&quot;                       
+## [130] &quot;Alz_GSM2973327&quot;                       
+## [131] &quot;Alz_GSM2973328&quot;                       
+## [132] &quot;Alz_GSM2973329&quot;                       
+## [133] &quot;Alz_GSM2973330&quot;                       
+## [134] &quot;Alz_GSM2973331&quot;                       
+## [135] &quot;Alz_GSM2973332&quot;                       
+## [136] &quot;Alz_GSM2973333&quot;                       
+## [137] &quot;Alz_GSM2973334&quot;                       
+## [138] &quot;Alz_GSM2973335&quot;                       
+## [139] &quot;Alz_GSM2973336&quot;                       
+## [140] &quot;Alz_GSM2973337&quot;                       
+## [141] &quot;Alz_GSM2973338&quot;                       
+## [142] &quot;Alz_GSM2973339&quot;                       
+## [143] &quot;healthy_MI_Males_GSM4205364&quot;          
+## [144] &quot;healthy_MI_Males_GSM4205363&quot;          
+## [145] &quot;healthy_MI_Males_GSM4205362&quot;          
+## [146] &quot;healthy_MI_Males_GSM4205361&quot;          
+## [147] &quot;healthy_MI_Males_GSM4205360&quot;          
+## [148] &quot;healthy_MI_Males_GSM4205359&quot;          
+## [149] &quot;MI_Males_GSM4205358&quot;                  
+## [150] &quot;MI_Males_GSM4205357&quot;                  
+## [151] &quot;MI_Males_GSM4205356&quot;                  
+## [152] &quot;MI_Males_GSM4205355&quot;                  
+## [153] &quot;MI_Males_GSM4205354&quot;                  
+## [154] &quot;MI_Males_GSM4205353&quot;                  
+## [155] &quot;flu_GSM3409106_29_day_0&quot;              
+## [156] &quot;flu_GSM3409107_29_day_1&quot;              
+## [157] &quot;flu_GSM3409108_29_day_3&quot;              
+## [158] &quot;flu_GSM3409004_29_day_7&quot;              
+## [159] &quot;flu_GSM3409105_29_day_21_screening&quot;   
+## [160] &quot;flu_GSM3409006_30._day_0&quot;             
+## [161] &quot;flu_GSM3409007_30_day_1&quot;              
+## [162] &quot;flu_GSM3409008_30_day_3&quot;              
+## [163] &quot;flu_GSM3409009_30_day_7&quot;              
+## [164] &quot;flu_GSM3409005_30_day_21_screening&quot;   
+## [165] &quot;flu_GSM3409013_05_.day_0&quot;             
+## [166] &quot;flu_GSM3409014_05_day_1&quot;              
+## [167] &quot;flu_GSM3409015_05_day_3&quot;              
+## [168] &quot;flu_GSM3409016_05_day_7&quot;              
+## [169] &quot;flu_GSM3409012_05_day_21_screening&quot;   
+## [170] &quot;flu_GSM3409161_33_day_0_no&quot;           
+## [171] &quot;flu_GSM3409162_33_day_1_no&quot;           
+## [172] &quot;flu_GSM3409163_33_day_3_no&quot;           
+## [173] &quot;flu_GSM3409111_33._day_7_no&quot;          
+## [174] &quot;flu_GSM3409160_33_day_21_screening_no&quot;
+## [175] &quot;flu_GSM3409124_36_day_0_no&quot;           
+## [176] &quot;flu_GSM3409125_36_day_1_no&quot;           
+## [177] &quot;flu_GSM3409126_36_day_3_no&quot;           
+## [178] &quot;flu_GSM3409127_36_day_7_no&quot;           
+## [179] &quot;flu_GSM3409123_36_day_21_screening_no&quot;
+## [180] &quot;flu_GSM3409135_38_day_0_no&quot;           
+## [181] &quot;flu_GSM3409136_38_day_1_no&quot;           
+## [182] &quot;flu_GSM3409137_38_day_3_no&quot;           
+## [183] &quot;flu_GSM3409138_38_day_7_no&quot;           
+## [184] &quot;flu_GSM3409134_38_day_21_screening_no&quot;
+## [185] &quot;EGCG_pre_GSM1923000&quot;                  
+## [186] &quot;EGCG_pre_GSM1923004&quot;                  
+## [187] &quot;EGCG_pre_GSM1923010&quot;                  
+## [188] &quot;EGCG_pre_GSM1923012&quot;                  
+## [189] &quot;EGCG_pre_GSM1923007&quot;                  
+## [190] &quot;EGCG_pre_GSM1923020&quot;                  
+## [191] &quot;EGCG_pre_GSM192998&quot;                   
+## [192] &quot;EGCG_pre_GSM1922995&quot;                  
+## [193] &quot;EGCG_pre_GSM1923002&quot;                  
+## [194] &quot;EGCG_pre_GSM1923008&quot;                  
+## [195] &quot;EGCG_pre_GSM1923015&quot;                  
+## [196] &quot;EGCG_pre_GSM1923018&quot;                  
+## [197] &quot;EGCG_pre_GSM1923022&quot;                  
+## [198] &quot;EGCG_pre_GSM1923017&quot;                  
+## [199] &quot;EGCG_post_EG_GSM1923001&quot;              
+## [200] &quot;EGCG_post_EG_GSM1923005&quot;              
+## [201] &quot;EGCG_post_EG_GSM1923011&quot;              
+## [202] &quot;EGCG_post_EG_GSM1923013&quot;              
+## [203] &quot;EGCG_post_EG_GSM1923021&quot;              
+## [204] &quot;EGCG_post_EG_GSM1923006&quot;              
+## [205] &quot;EGCG_post_EG_GSM1923014&quot;              
+## [206] &quot;EGCG_post_EQ_GSM192996&quot;               
+## [207] &quot;EGCG_post_EQ_GSM1923003&quot;              
+## [208] &quot;EGCG_post_EQ_GSM1923009&quot;              
+## [209] &quot;EGCG_post_EQ_GSM1923016&quot;              
+## [210] &quot;EGCG_post_EQ_GSM1923019&quot;              
+## [211] &quot;EGCG_post_EQ_GSM1923023&quot;              
+## [212] &quot;EGCG_post_EQ_GSM192997&quot;               
+## [213] &quot;hemo_GSM3440208&quot;                      
+## [214] &quot;hemo_GSM3440209&quot;                      
+## [215] &quot;hemo_GSM3440210&quot;                      
+## [216] &quot;hemo_GSM3440211&quot;                      
+## [217] &quot;hemo_GSM3440212&quot;                      
+## [218] &quot;hemo_GSM3440213&quot;                      
+## [219] &quot;hemo_GSM3440214&quot;                      
+## [220] &quot;hemo_GSM3440215&quot;                      
+## [221] &quot;hemo_GSM3440216&quot;                      
+## [222] &quot;hemo_GSM3440217&quot;                      
+## [223] &quot;hemo_GSM3440218&quot;                      
+## [224] &quot;hemo_GSM3440219&quot;                      
+## [225] &quot;hemo_GSM3440220&quot;                      
+## [226] &quot;hemo_GSM3440221&quot;                      
+## [227] &quot;hemo_GSM3440222&quot;                      
+## [228] &quot;hemo_GSM3440223&quot;                      
+## [229] &quot;hemo_GSM3440224&quot;                      
+## [230] &quot;hemo_GSM3440225&quot;                      
+## [231] &quot;hemo_GSM3440226&quot;                      
+## [232] &quot;hemo_GSM3440227&quot;                      
+## [233] &quot;hemo_GSM3440228&quot;                      
+## [234] &quot;hemo_GSM3440229&quot;                      
+## [235] &quot;hemo_GSM3440230&quot;                      
+## [236] &quot;hemo_GSM3440231&quot;</code></pre>
+<pre class="r"><code>write.csv(all6, &#39;all_6_studies.csv&#39;, row.names=FALSE)</code></pre>
+<hr />
 <p>In the interest of being interesting, these tables have all the original samples in each respective table for that disease group. There are some healthy samples in some such as healthy overweight females before taking EGCG, non-Alzheimer’s males and females, healthy Russian males without heart disease, and healthy females and males who do not have iron toxicity relative to the iron toxicity study. There are some studies that do not have healthy controls nor separation by gender such as the tetanis immunity and flu vaccinated samples.</p>
 <p>Since the tetanis immunized samples don’t have a control or healthy group to compare to which haven’t been immunized, let us compare it to the samples of healthy overweight females, healthy Russian males, healthy females and males without iron toxicity, and flu vaccinated not treated with antibiotics and flu vaccinated treated with antibiotics. The values in the tetanis immunized samples have a very high range for some genes and doesn’t get lower than 0.08 for any gene. We will compare the fields of each table that has the <strong>mean</strong> values across sample for each <strong>gene</strong> in that group by creating a table with those means.</p>
 <pre class="r"><code>tet_mean &lt;- TetanisImmunity1[,c(7,8)] #gene and tetanis immunized mean
