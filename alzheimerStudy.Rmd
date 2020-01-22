@@ -346,6 +346,8 @@ The plan is to get the genes these studies all have in common and compare betwee
 
 This study's data on fold change, means, and sample values is the **both.csv** file. The flu study had days 0,3,7, and 21 comparisons and both genders in the **FoldChange_All.csv** file for that study. The iron toxicity fold change stats is in the **all-fc-grops.csv** file for the hemochromatosis study on both genders. The overweight females using EGCG to diet with the included fold change values for those using EGCG or EGCG+vitamin C+fish oil is in the **foldChange_EGCG.csv** file. And the males who have heart disease of type MI is in the file **foldChange_MI_males.csv**. The tetanis immunization samples don't have the fold change because they are all healthy donors with no age data or gender data and taken 6 days after the tetanis shot, but it is useful to compare genes with healthy females and males in the healthy and control groups **tetanisImmunizationBlood.csv** is that file.
 
+***
+
 Lets read in those files with their respective and appropriately described names.
 ```{r}
 Alzheimer <- read.csv('both.csv', sep=',', header=T, na.strings=c('',' '))
@@ -366,12 +368,21 @@ Look at the column names and select the ones needed or that have fold change val
 
 The Alzheimer column names are:
 ```{r}
-colnames(Alzheimer)
+Alzheimer1 <- Alzheimer
+colnames(Alzheimer1)[c(2:85)] <- paste('Alz_',
+                                       colnames(Alzheimer1)[c(2:85)],
+                                      sep='')
+colnames(Alzheimer1)
 ```
 
 The heart disease column names are:
 ```{r}
-colnames(Heart_Disease_Males)
+Heart_Disease_Males1 <- Heart_Disease_Males
+colnames(Heart_Disease_Males1)[c(4,6:11)] <- gsub('Male', 'MI_Male',
+                      colnames(Heart_Disease_Males1)[c(4,6:11)])
+Heart_Disease_Males1 <- Heart_Disease_Males1[,-1]
+colnames(Heart_Disease_Males1)
+
 ```
 
 The tetanis immunization after six days taken from their blood has the following column names:
@@ -386,25 +397,62 @@ Take the log2 scale of the tetanis data set to make the values the same scale as
 ```{r}
 TetanisImmunity1 <- log2(TetanisImmunity[,3:9]+1)#avoid negative values
 TetanisImmunity1$GENE_SYMBOL <- TetanisImmunity$GENE_SYMBOL
-min(TetanisImmunity1[,1:7])
-max(TetanisImmunity1[,1:7])
+min(TetanisImmunity1[,1:6])
+max(TetanisImmunity1[,1:6])
+
+Tetanis_Immunity1 <- TetanisImmunity1[,c(8,7,1:6)]
+colnames(Tetanis_Immunity1)[3:8] <- paste('tetanis_',
+                    colnames(Tetanis_Immunity1)[3:8], sep='')
+colnames(Tetanis_Immunity1)
 ```
 
 The EGCG overweight females column names are:
 ```{r}
-colnames(Overweight_Females_EGCG)
+Overweight_Females_EGCG1 <- Overweight_Females_EGCG
+colnames(Overweight_Females_EGCG1)[9:36] <- paste('EGCG',                                                  colnames(Overweight_Females_EGCG1[9:36]),
+                                                  sep='_')
+colnames(Overweight_Females_EGCG1)
 ```
 
 The flu vaccinated (treated with antibiotics treatment or not as 't' or 'nt' respectively) for each of the initial day 0, day 3, day 7, and day 21 profiles from three treated and three not treated samples have the following column names:
 ```{r}
-colnames(flu_Vaccinated)
+flu_Vaccinated1 <- flu_Vaccinated
+colnames(flu_Vaccinated1)[24:53] <- paste('flu',colnames(flu_Vaccinated1)[24:53],
+                                     sep='_')
+colnames(flu_Vaccinated1)
 ```
 
 The iron toxicity study put the males and females into three groups of the genotypes associated with hemochromatosis or iron toxicity. It also included healthy males and females to compare to. The fold change values are for the groups each compared to the healthy groups by gender by all three groups 'overall' and by each of the 3 groups separately. The iron toxicity column names are:
 ```{r}
-colnames(iron_toxicity)
+iron_toxicity1 <- iron_toxicity
+colnames(iron_toxicity1)[c(2:9,12:43)] <- paste('hemo_',colnames(iron_toxicity1)[c(2:9,12:43)], 
+                                 sep='')
+colnames(iron_toxicity1)[10:11] <- gsub('hemo','hemo_',colnames(iron_toxicity1)[10:11])
+
+colnames(iron_toxicity1)
 ```
 
+***
+The above tables that were just made that added the type of sample study to the NCBI GEO accession ID's and other fields missing table identifier type are now going to be merged and written to csv to use in other programs or purposes. It will also be added to Kaggle datasets.
+
+```{r}
+K0 <- merge(Alzheimer1, Heart_Disease_Males1, by.x='X', by.y='Symbol')
+K1 <- merge(Tetanis_Immunity1, K0, by.x='GENE_SYMBOL', by.y='X')
+K2 <- merge(K1, flu_Vaccinated1, by.x='GENE_SYMBOL', by.y='Gene')
+K3 <- merge(K2, Overweight_Females_EGCG1, by.x='GENE_SYMBOL', by.y='X')
+K4 <- merge(K3, iron_toxicity1, by.x='GENE_SYMBOL', by.y='X')
+
+GSM <- grep('GSM',colnames(K4))
+all6samples <- K4[,GSM]
+all6stats <- K4[,-GSM]
+all6 <- cbind(all6stats,all6samples)
+colnames(all6)
+
+write.csv(all6, 'all_6_studies.csv', row.names=FALSE)
+```
+
+
+***
 
 In the interest of being interesting, these tables have all the original samples in each respective table for that disease group. There are some healthy samples in some such as healthy overweight females before taking EGCG, non-Alzheimer's males and females, healthy Russian males without heart disease, and healthy females and males who do not have iron toxicity relative to the iron toxicity study. There are some studies that do not have healthy controls nor separation by gender such as the tetanis immunity and flu vaccinated samples.
 
