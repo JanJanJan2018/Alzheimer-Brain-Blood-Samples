@@ -317,17 +317,19 @@ to_plot
 ```
 
 
-```{r, message=FALSE, error=FALSE, warning=FALSE}
+```{r, fig.width=7, fig.height=7}
 
 ggplot(data = to_plot, aes(x=gene, y=foldChange, fill=group)) +
   geom_bar(stat='identity', position=position_dodge())+
   scale_y_continuous(breaks = seq(0, 1.2, by=.1), limits=c(0,1.2))+
   scale_fill_brewer(palette='Paired') + 
-  ylab('Fold Change in Alzheimer male and female Samples')
-
-
+  ggtitle('Alzheimer\'s Disease for Males and Females')+
+  ylab('Fold Change')+
+  xlab('Three Most and Least Expressed Genes')
 ```
 
+
+***
 
 Some other data sets on diseases would be interesting to compare to this data on Alzheimer patients. The other data sets to compare this blood tissue type of microarray gene expression profiles are the:
 hemochromatosis (iron toxicity) from https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE121620, 
@@ -376,6 +378,16 @@ The tetanis immunization after six days taken from their blood has the following
 ```{r}
 
 colnames(TetanisImmunity)
+min(TetanisImmunity[,3:9])
+max(TetanisImmunity[,3:9])
+```
+
+Take the log2 scale of the tetanis data set to make the values the same scale as the flu vaccinated and other samples that used log2 scale.
+```{r}
+TetanisImmunity1 <- log2(TetanisImmunity[,3:9]+1)#avoid negative values
+TetanisImmunity1$GENE_SYMBOL <- TetanisImmunity$GENE_SYMBOL
+min(TetanisImmunity1[,1:7])
+max(TetanisImmunity1[,1:7])
 ```
 
 The EGCG overweight females column names are:
@@ -398,7 +410,7 @@ In the interest of being interesting, these tables have all the original samples
 
 Since the tetanis immunized samples don't have a control or healthy group to compare to which haven't been immunized, let us compare it to the samples of healthy overweight females, healthy Russian males, healthy females and males without iron toxicity, and flu vaccinated not treated with antibiotics and flu vaccinated treated with antibiotics. The values in the tetanis immunized samples have a very high range for some genes and doesn't get lower than 0.08 for any gene. We will compare the fields of each table that has the __mean__ values across sample for each __gene__ in that group by creating a table with those means.
 ```{r}
-tet_mean <- TetanisImmunity[,c(2,9)] #gene and tetanis immunized mean
+tet_mean <- TetanisImmunity1[,c(7,8)] #gene and tetanis immunized mean
 iron_mean <- iron_toxicity[,c(1,8:11)]#gene, healthy female, healthy male
 # iron toxic females, iron toxic males
 flu_7day <- flu_Vaccinated[,c(1,22,17)] #gene, not treated, treated 
@@ -488,6 +500,7 @@ dim(healthy_tetanis_FCs)
 colnames(healthy_tetanis_FCs)
 ```
 
+
 There are 13,193 genes to compare fold change values of tetanis immunized samples to the healthy control samples from the combined studies.
 ```{r}
 write.csv(healthy_tetanis_FCs,'healthy_tetanis_FCs.csv', row.names=FALSE)
@@ -524,7 +537,206 @@ head(tetanis_flu_FCs1)
 write.csv(tetanis_flu_FCs1, 'tetanis_flu_FCs.csv', row.names=FALSE)
 ```
 
+Going to genecards.org I searched for Immune genes and found some genes that I want to analyze in this data set, tetanis_flu_FCs1, to see how immune cells being treated with the tetanis antibodies after six days and the separate study of flu immunized cells being treated with antibiotics after seven days, and not treated with antibiotics after 7 days.These genes are:
+* __CD4__ (big autoimmune indicator in lupus)
+* __IL2__ (produced by Produced by T-cells in response to antigenic or mitogenic...and other activities crucial to regulation of the immune response. Can stimulate B-cells, monocytes, lymphokine-activated... (UniProtKB/Swiss-Prot))
+* __IFNG__ (Produced by lymphocytes activated by specific antigens or mitogens. IFN-gamma, in addition to having antiviral activity, has important immunoregulatory functions. It is a potent activator of macrophages, it has antiproliferative effects on transformed cells and it can potentiate the antiviral and antitumor effects of the type I interferons.)
+* __IL10__ (Major immune regulatory cytokine that acts on many cells of the immune system where it has profound anti-inflammatory functions, limiting excessive tissue disruption caused by inflammation.)
+* __IL6__ (Cytokine with a wide variety of biological functions. It is a potent inducer of the acute phase response. Plays an essential role in the final differentiation of B-cells into Ig-secreting cells Involved in lymphocyte and monocyte differentiation. Acts on B-cells, T-cells, hepatocytes, hematopoietic progenitor cells and cells of the CNS. Required for the generation of T(H)17 cells. Also acts as a myokine. It is discharged into the bloodstream after muscle contraction and acts to increase the breakdown of fats and to improve insulin resistance. It induces myeloma and plasmacytoma growth and induces nerve cells differentiation.)
 
+```{r}
+CD4 <- grep('^CD4$', tetanis_flu_FCs1$GENE_SYMBOL)
+IL2 <- grep('^IL2$', tetanis_flu_FCs1$GENE_SYMBOL)
+IFNG <- grep('^IFNG$', tetanis_flu_FCs1$GENE_SYMBOL)
+IL10 <- grep('^IL10$', tetanis_flu_FCs1$GENE_SYMBOL)
+IL6 <- grep('^IL6$', tetanis_flu_FCs1$GENE_SYMBOL)
+
+tet_flu_immune_genes <- tetanis_flu_FCs1[c(CD4,IL2,IFNG,IL10,IL6),]
+head(tet_flu_immune_genes)
+```
+
+We need to tidy this data set for plotting with the tidyr and ggplot2 libraries.
+```{r, message=FALSE, error=FALSE, warning=FALSE}
+library(tidyr)
+library(ggplot2)
+
+```
+
+Tidy the table into a tibble
+```{r}
+tet_flu_tidy <- gather(tet_flu_immune_genes, 'group','foldChange',2:6)
+tet_flu_tidy$foldChange <- round(tet_flu_tidy$foldChange,3)
+head(tet_flu_tidy)
+```
+
+Plot the table or tibble of data above using bar plot to see how the gene expression values of immune genes compare.
+```{r, fig.width=7, fig.height=7}
+ggplot(data = tet_flu_tidy, aes(x=GENE_SYMBOL, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 30, by=2), limits=c(0,32))+
+  scale_fill_brewer(palette='Paired') + 
+  ggtitle('Tetanis and Flu Vaccinated Samples')+
+  ylab('Fold Change')+
+  xlab('Immune Gene')
+
+```
+
+***
+
+Now that we  have a couple bar charts of these immune genes selected to compare across the fold change values and mean values of the tetanis and flu vaccinated samples that were and weren't treated with antibiotics, lets identify some conditions that stand out for gene expression values of the fold change values of tetanis to flu vaccinated.
+
+It is apparantly clear that the tetnis vaccinated mean values are highest in almost every immune gene above except for the IL2 gene which is produced by the T-cells and crucial to the immune response. There is a higher fold change in tetanis to flu without antibiotics than the fold change of tetanis to flu treated with antibiotics in the CD4, IL10, and IL2 genes, but the IFNG (antiviral properties) and IL6 genes have a lower fold change with the IL6 (increases break down of fats and insulin resistance) gene dramatically decreased. 
+
+From the above sample the IL2 gene is not visible, so we should scale it down knowing the other genes will be missing from the next plot.
+```{r, message=FALSE, error=FALSE, warning=FALSE,fig.width=7, fig.height=7}
+ggplot(data = tet_flu_tidy, aes(x=GENE_SYMBOL, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 4, by=.5), limits=c(0,4))+
+  scale_fill_brewer(palette='Paired') + 
+  ggtitle('Tetanis and Flu Vaccinated Samples for IL2 Range')+
+  ylab('Fold Change')+
+  xlab('Immune Gene')
+
+```
+
+***
+
+What about comparing all the healthy female and male samples to the tetanis vaccinated samples and looking at those same immune genes, and doing the same for the flu samples? Would this show some interesting data? This table is the healthy_tetanis_FCs table.
+```{r}
+colnames(healthy_tetanis_FCs)
+
+```
+
+Use dplyr to get gene means of all the sample means of healthy patients except the tetanis means. This will combine the mixed genders and ages of the healthy blood samples to compare with the tetanis vaccinated samples.
+```{r}
+healthy <- healthy_tetanis_FCs[,c(1:10)]
+
+CD4 <- grep('^CD4$', healthy$GENE_SYMBOL)
+IL2 <- grep('^IL2$', healthy$GENE_SYMBOL)
+IFNG <- grep('^IFNG$', healthy$GENE_SYMBOL)
+IL10 <- grep('^IL10$', healthy$GENE_SYMBOL)
+IL6 <- grep('^IL6$', healthy$GENE_SYMBOL)
+
+healthy_ig <- healthy[c(CD4,IL2,IFNG,IL10,IL6),]
+
+healthy_ig$all_healthy_Means <- rowMeans(healthy_ig[3:10])
+healthy_FC <- healthy_ig %>% mutate(FC_tet_healthy = Tetanis_Means/all_healthy_Means)
+
+healthy_tet_fc <- healthy_FC[,c(1,2,11,12)]
+```
+
+
+Tidy this table, healthy_tet_fc, into a tibble to plot a bar chart of the values.
+```{r}
+healthy_tet_fc_tidy <- gather(healthy_tet_fc, 'group','foldChange',2:4)
+healthy_tet_fc_tidy$foldChange <- round(healthy_tet_fc_tidy$foldChange,3)
+head(healthy_tet_fc_tidy)
+
+
+```
+
+Now plot the results.
+```{r}
+ggplot(data = healthy_tet_fc_tidy, aes(x=GENE_SYMBOL, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 30, by=2), limits=c(0,32))+
+  scale_fill_brewer(palette='Paired') + 
+  ggtitle('Tetanis Vaccinated to Healthy Samples')+
+  ylab('Fold Change')+
+  xlab('Immune Gene')
+
+```
+
+***
+
+From the bar chart above, the Tetanis mean values are greatest (dramatically) in all immune genes selected except for the IL2 gene, as was the same for the tetanis to flu immunized samples. The fold change for tetanis vaccinated compared to healthy non-vaccinated samples show that Tetanis fold change values are all more than a 100% increase for these specific immune genes, except for the IL2 gene that will be shown in the plot below.
+```{r, warning=FALSE}
+ggplot(data = healthy_tet_fc_tidy, aes(x=GENE_SYMBOL, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 3, by=.5), limits=c(0,3.5))+
+  scale_fill_brewer(palette='Paired') + 
+  ggtitle('Tetanis Vaccinated and Healthy Samples for IL2 Range')+
+  ylab('Fold Change')+
+  xlab('Immune Gene')
+
+```
+
+***
+
+There are some more analytics or comparisons that can be done with this sort of data warehouse on gene expression values from blood in microarray medium. 
+The flu vaccinated samples, flu_7day, could then be compared to these healthy samples in the healthy table. The EGCG effects on overweight females, the hemochromatosis patients' gene values can be compared to find how these specific immune genes compare to immunized flu and tetanis samples are a few other comparisons that can be made.
+```{r}
+colnames(flu_7day)[2:3] <- paste('flu_',colnames(flu_7day)[2:3], sep='')
+colnames(flu_7day)
+colnames(healthy)
+```
+
+```{r}
+flu_healthy <- merge(flu_7day, healthy, by.x='Gene', by.y='GENE_SYMBOL')
+colnames(flu_healthy)
+```
+
+```{r}
+CD4 <- grep('^CD4$', flu_healthy$Gene)
+IL2 <- grep('^IL2$', flu_healthy$Gene)
+IFNG <- grep('^IFNG$', flu_healthy$Gene)
+IL10 <- grep('^IL10$', flu_healthy$Gene)
+IL6 <- grep('^IL6$', flu_healthy$Gene)
+
+flu_healthy1 <- flu_healthy[c(CD4,IL2,IFNG,IL10,IL6),]
+head(flu_healthy1)
+
+```
+
+These are the fold change value comparisons to healthy mixed ages and gender samples. Where NT7 is not treated with antibiotics and T7 was treated for the flu fold change values only.
+```{r}
+flu_healthy1$All_Healthy_Mean <- rowMeans(flu_healthy1[,5:12])
+flu_healthy2 <- flu_healthy1 %>% mutate(FC_tet_healthy = 
+                                          Tetanis_Means/All_Healthy_Mean)
+flu_healthy3 <- flu_healthy2 %>% mutate(FC_flu_NT7_healthy = 
+                                          flu_NT7_Mean/All_Healthy_Mean)
+flu_healthy4 <- flu_healthy3 %>% mutate(FC_flu_T7_healthy = 
+                                          flu_T7_Mean/All_Healthy_Mean)
+Flu_Healthy <- flu_healthy4[,c(1:4,13:16)]
+```
+
+Use tidy on this data.
+```{r}
+Flu_Healthy_tidy <- gather(Flu_Healthy, 'group','foldChange',2:8)
+Flu_Healthy_tidy$foldChange <- round(Flu_Healthy_tidy$foldChange,3)
+head(Flu_Healthy_tidy)
+
+```
+
+
+```{r, fig.width=7, fig.height=7}
+ggplot(data = Flu_Healthy_tidy, aes(x=Gene, y=foldChange, fill=group)) +
+  geom_bar(stat='identity', position=position_dodge())+
+  scale_y_continuous(breaks = seq(0, 27, by=2), limits=c(0,28))+
+  scale_fill_brewer(palette='Paired') + 
+  ggtitle('Flu Vaccinated Immune Genes Compared to Healthy')+
+  ylab('Fold Change')+
+  xlab('Immune Gene')
+
+```
+
+***
+
+The above bar chart shows the Mean values for Tetanis and Flu vaccinated samples for these immune genes are higher than the mean values for these immune genes in non-vaccinated healthy samples of mixed genders and ages 18-95 years old. 
+
+The fold change values compared to healthy for the flu vaccinated and treated with antibiotics show these immune genes to be higher than the treated in only the IL10 and IL2 immune genes. 
+
+Again, IL2 is the only gene that the tetanis mean and fold change in gene expression values is not greater than the healthy mean values or the flu vaccinated mean values and fold change values compared to healthy gene expression means.
+
+In the IL6 gene, the fold change value of the flu vaccinated not treated with antibiotics is more than double the fold change value of the flu vaccinated that was treated with antibiotics. This could mean seven days after being treated with antibiotics when also being vaccinated for the flu, that the IL6 immune gene slows down expression values below the healthy levels.
+
+***
+
+It still remains to compare these samples of Alzheimer's Disease patients across samples of the healthy controls, and the same for the EGCG overweight female treatment, the heart disease males, iron toxicity males and females for the vaccinations. Since immune genes are a good way of telling how stressed a person's body is outside of what he or she can control this gives another option for analyzing health of a person to get vaccinated or when testing a new diet or discovering gene targets involved in an increased risk of death in heart disease or Alzheimer's disease. 
+
+What questions are you thinking about discovering given this data? Can you uncover what you know piled on top of what this data can explain for you to help answer the questions you have? If so, then play around with this data to answer those questions. If not, then go get more data or develop a different way to analyze this warehouse of data, then make note of any questions you have that you find interesting or curious and answer it with the data.
+
+***
 
 
 
