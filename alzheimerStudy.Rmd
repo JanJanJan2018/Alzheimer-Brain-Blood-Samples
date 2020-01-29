@@ -786,5 +786,141 @@ What questions are you thinking about discovering given this data? Can you uncov
 
 ***
 
+***
+
+After letting this analysis sit for a while, lets get the data of all 236 samples of stats and study samples ready for machine learning with R and save for later using a classification variable that will give the study each sample was derived from. To do this we must first identify each sample from its respective study and retrieve the sample meta as healthy or treatment/disease type. This dataset is already in our environment from earlier if you saved your RStudio information or kept this file open the entire time while running the previous commands, all6, is the table to use. Otherwise it was written to csv as 'all_6_studies.csv' to read in.
+```{r}
+#Return the column names of all6
+colnames(all6)
+```
+
+The first 58 fields are the stat fields created for respective data sets and won't be included in the machine learning data set. 
+
+- The tetanis data sets didn't have any age or gender information provided and were all healthy so it will not need to be identified separately from healthy classification. 
+
+- The next samples are for Alzheimers, and these samples don't say the healthy or disease state, so they will need to have that information attached for **columns 65 to 142**. 
+
+- The MI samples as **columns 143 to 154** are already identified as healthy or MI.
+
+- The flu samples are identified by flu as is with antibiotics or flu with out antibiotics from healthy donors in **columns 155 to 184**
+
+- The EGCG samples are also identified already as using or not using EGCG in **columns 185 to 212** in the column name.
+
+- The hemochromatosis columns in **213 to 236** need to be identified as healthy or disease.
+
+I went through the subset tables in the Alzheimer and hemochromatosis gender and healthy tables to get the respective indices of the gender and healthy identified samples in this table.Revisiting the Flu+anti or not study, the day 0 is also the healthy state pre-vaccination that can be used as healthy blood , but without attached gender information.
+The flu+antibiotics gave antibiotics orally between day1 and day3
+```{r}
+AD_healthy_male <- c(74,76,82,86,94,96,99,102,123,126,129,130,132,133,134,141)
+AD_healthy_female <-c(72,87,88,89,91,97,100,114,116,119,120,124,125,127,128,138)
+AD_male <- c(65,66,69,70,75,79,81,85,90,95,98,104,109,110,111,115,118,121,135,136,139,140)
+AD_female <- c(67,68,71,73,77,78,80,83,84,92,93,101,103,105,106,107,108,112,113,117,122,131,137,142)
+Hemo_healthy_female <- c(234,235)
+Hemo_healthy_male <- c(231,232,233,236)
+Hemo_disease_male <- c(213:218,220,221,223:226,230)
+Hemo_disease_female <- c(219,222,227:229)
+female_overweight <- c(185:198)
+female_overweight_EGCG_treated <- c(199:205)
+female_overweight_EGCG_Plus_treated <- c(206:212)
+flu_healthy_control <- c(155,160,165,170,175,180)
+flu_Plus_antibiotics_day1 <- c(156,161,166)
+flu_Plus_antibiotics_day3 <- c(157,162,167)
+flu_Plus_antibiotics_day7 <- c(158,163,168)
+flu_Plus_antibiotics_day21 <- c(159,164,169)
+flu_no_antibiotics_day1 <- c(171,176,181)
+flu_no_antibiotics_day3 <- c(172,177,182)
+flu_no_antibiotics_day7 <- c(173,178,183)
+flu_no_antibiotics_day21 <- c(174,179,184)
+MI_healthy_males <- c(143:148)
+MI_males <- c(149:154)
+tetanis_immunized <- c(59:64)
+
+SamplesOnly <- all6[,c(1,AD_healthy_male,AD_healthy_female,AD_male,AD_female,
+                       Hemo_healthy_female,Hemo_healthy_male,Hemo_disease_male,
+                       Hemo_disease_female,
+                       female_overweight,female_overweight_EGCG_treated,
+                       female_overweight_EGCG_Plus_treated,
+                       flu_healthy_control,flu_Plus_antibiotics_day1,
+                       flu_Plus_antibiotics_day3,flu_Plus_antibiotics_day7,
+                       flu_Plus_antibiotics_day21,flu_no_antibiotics_day1,
+                       flu_no_antibiotics_day3,flu_no_antibiotics_day7,
+                       flu_no_antibiotics_day21,MI_healthy_males,
+                       MI_males,tetanis_immunized),]
+row.names(SamplesOnly) <- SamplesOnly$GENE_SYMBOL
+SamplesOnly2 <- SamplesOnly[,-1]
+```
+
+Now for making the class identifier as a vector to use in classifying these samples by type.
+```{r}
+AD_hm <- rep('AD Healthy Male',length(AD_healthy_male))
+AD_hf <- rep('AD Healthy Female', length(AD_healthy_female))
+AD_m <- rep('AD Male', length(AD_male))
+AD_f <- rep('AD Female', length(AD_female))
+Hemo_hf <- rep('Hemo Healthy Female', length(Hemo_healthy_female))
+Hemo_hm <- rep('Hemo Healthy Male', length(Hemo_healthy_male))
+Hemo_m <- rep('Hemo Male', length(Hemo_disease_male))
+Hemo_f <- rep('Hemo Female', length(Hemo_disease_female))
+overweight_female <- rep('Overweight Female', length(female_overweight))
+overweight_female_EGCG <- rep('Overweight Female EGCG Treated',
+                              length(female_overweight_EGCG_treated))
+overweight_female_EGCG_Plus <- rep('Overweight Female EGCG+fishOil+VitC', 
+                                   length(female_overweight_EGCG_Plus_treated))
+flu_not_immunized_yet <- rep('Flu non immunized healthy',
+                             length(flu_healthy_control))
+flu_Plus_day1 <- rep('Flu Immunized Plus Antibiotics Day 1',
+                     length(flu_Plus_antibiotics_day1))
+flu_Plus_day3 <- rep('Flu Immunized Plus Antibiotics Day 3',
+                     length(flu_Plus_antibiotics_day3))
+flu_Plus_day7 <- rep('Flu Immunized Plus Antibiotics Day 7',
+                     length(flu_Plus_antibiotics_day7))
+flu_Plus_day21 <- rep('Flu Immunized Plus Antibiotics Day 21',
+                      length(flu_Plus_antibiotics_day21))
+flu_only_day1 <- rep('Flu Immunized Only Day 1', length(flu_no_antibiotics_day1))
+flu_only_day3 <- rep('Flu Immunized Only Day 3', length(flu_no_antibiotics_day3))
+flu_only_day7 <- rep('Flu Immunized Only Day 7', length(flu_no_antibiotics_day7))
+flu_only_day21 <- rep('Flu Immunized Only Day 21', length(flu_no_antibiotics_day21))
+MI_hm <- rep('MI Healthy Males', length(MI_healthy_males))
+MI_m <- rep('MI Males', length(MI_males))
+tet <- rep('Tetanis Immunized', length(tetanis_immunized))
+
+ClassType <- as.data.frame(c(AD_hm, AD_hf, AD_m, AD_f, Hemo_hf, Hemo_hm, Hemo_m, Hemo_f,
+               overweight_female, overweight_female_EGCG, overweight_female_EGCG_Plus,
+               flu_not_immunized_yet, flu_Plus_day1, flu_Plus_day3, flu_Plus_day7,
+               flu_Plus_day21, flu_only_day1, flu_only_day3, flu_only_day7,
+               flu_only_day21, MI_hm, MI_m, tet))
+colnames(ClassType) <- 'Class_Type'
+Class2 <- as.data.frame(t(ClassType))
+colnames(Class2) <- colnames(SamplesOnly2)
+
+t(Class2) #Compare the row names when transposed to the assigned Class_Type
+
+```
+
+Replace the Samples GSM IDs with the class type labels.
+```{r}
+SamplesOnly3 <- SamplesOnly2
+colnames(SamplesOnly3) <- ClassType$Class_Type
+write.csv(SamplesOnly3, 'Dracula.csv', row.names=TRUE)
+
+dim(SamplesOnly3)
+colnames(SamplesOnly3)
+classNames <- colnames(SamplesOnly3)
+```
+
+The above data was written to file and almost machine learning ready, but it would be a wide matrix of 12,845 features of gene symbols and 178 rows of class if transposed as is. So it will be filtered to the top FC genes from all6 for Alzheimer females and bottom genes of the same. No particular reason the genes with the most change in Alzheimer's Disease for females was selected, but it is known the brain controls many functions and AD patients die slowly by having body functions shut off until sadly and ultimately they cannot swallow their own saliva or breathe (many clients have had loved ones die of AD whom were told by nurses and doctors that this is how they die--maybe a 3rd party fact).
+```{r}
+AD_top125 <- all6[order(all6$Alz_FC_fem_ctrl_AD, decreasing=TRUE)[1:125],c(1,7)]
+AD_bottom125 <- all6[order(all6$Alz_FC_fem_ctrl_AD)[1:125],c(1,7)]
+AD250 <- rbind(AD_top125,AD_bottom125)
+SamplesOnly3$Gene <- row.names(SamplesOnly3)
+SamplesOnly4 <- merge(AD250,SamplesOnly3, by.x='GENE_SYMBOL', by.y='Gene')
+row.names(SamplesOnly4) <- SamplesOnly4$GENE_SYMBOL
+Samples250 <- SamplesOnly4[,-c(1:2)]
+
+ML_250 <- as.data.frame(t(Samples250))
+ML_250$Class_Type <- classNames
+row.names(ML_250) <- NULL
+ML_ready_250 <- ML_250[,c(251,1:250)]
+```
 
 
