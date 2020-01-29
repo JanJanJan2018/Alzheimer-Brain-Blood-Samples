@@ -3,10 +3,10 @@ title: "Alzheimers Disease Brain Blood Samples"
 author: "Janis Corona"
 date: "1/17/2020"
 output:
+  word_document: default
   html_document:
     df_print: paged
   pdf_document: default
-  word_document: default
 ---
 
 This analysis is done using the NCBI gene expression samples taken from a study that used the middle temporal gyrus side of the brain of frozen samples taken from Alzheimer's patients that totalled 78 samples of control and repeat microarray gene expression results. The file was able to be downloaded and unzipped complete with the platform gene symbol ID already attached. A separate file of the meta information that includes the age, gender, tissue type and disease as Alzheimer's Disease (AD) or control was made from the Series information for each sample. The age range for these samples of healthy and AD patients is from 70-95 years of age.
@@ -921,6 +921,121 @@ ML_250 <- as.data.frame(t(Samples250))
 ML_250$Class_Type <- classNames
 row.names(ML_250) <- NULL
 ML_ready_250 <- ML_250[,c(251,1:250)]
+write.csv(ML_ready_250, 'ML_ready_250.csv', row.names=FALSE)
 ```
+
+***
+***
+
+We can use this latest ML_ready_250, or machine learning ready table of 250 genes in common most/least expressed in AD females with the classifications (23) using a fast and relatively new ML software called H2O.
+
+A note on H2O: it is faster than most machine learning data sets and is used as a better compression format for very large datasets, while being an extension to Principal Component Analysis (PCA) in extracting the PCAs with the most variance to analyze. These commands don't take very long to run.
+
+[H20 tutorial](http://docs.h2o.ai/h2o-tutorials/latest-stable/tutorials/glm/glm.html)
+Installed [java for 64bit ](https://docs.oracle.com/en/java/javase/13/index.html) when R didn't run
+
+```{r, warning=FALSE, error=FALSE, message=FALSE}
+#install.packages('h2o')
+library(h2o)
+```
+
+```{r}
+h2o.init(nthreads=-1, max_mem_size="2G")
+
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath("ML_ready_250.csv"))
+#h2o.summary(D) would print the summary stats of these 251 features
+
+data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c("train","test","valid"))
+names(data) <- c('Train','Test','Valid') 
+```
+
+
+multinomial model
+```{r}
+m1 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS')
+
+h2o.confusionMatrix(m1, valid=TRUE)
+```
+
+This model doesn't use regularization of the default by setting lambda=0, 
+regularization generalizes better between the training set and test and validation set
+by reducing the over and under fit of model.
+```{r}
+m2 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS', 
+             lambda = 0)
+```
+
+Get confusion matrix in the training data.
+```{r}
+h2o.confusionMatrix(m2, valid=FALSE) 
+```
+
+Get confusion matrix in the validation data.
+```{r}
+h2o.confusionMatrix(m2, valid=TRUE)  
+```
+
+
+```{r}
+m3 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS', 
+             lambda = 0,
+             keep_cross_validation_predictions = TRUE)
+h2o.confusionMatrix(m3, valid=TRUE)
+```
+
+***
+#### Binary ML ready data set
+Lets go back to the ML_ready_250 data set and limit the classes to two, so that we can use binomial classification on Healthy or Disease. For this purpose the overweight females will be diseased because many health problems associated with being overweight.
+```{r}
+ML_ready_250 <- read.csv('ML_ready_250.csv', sep=',', header=TRUE, na.strings=c('',' '))
+ctrl <- grep('[hH]ealthy',ML_ready_250$Class_Type)
+healthy <- ML_ready_250[ctrl,]
+disease <- ML_ready_250[-ctrl,]
+disease$Class_Type <- 'Not Healthy or Treatment Control'
+healthy$Class_Type <- 'Healthy Control'
+
+ML_ready_250_binomial_class <- rbind(disease,healthy)
+write.csv(ML_ready_250_binomial_class,'ML_ready_250_binomial.csv', row.names=FALSE)
+```
+
+Now, lets use H2O for binary classification and see results produced for the confusion matrix.
+```{r}
+h2o.init(nthreads=-1, max_mem_size="2G")
+
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath("ML_ready_250_binomial.csv"))
+
+data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c("train","test","valid"))
+names(data) <- c('Train','Test','Valid') 
+
+m4 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = 'Class_Type',
+             family='binomial',
+             solver='L_BFGS', 
+             lambda = 0)
+h2o.confusionMatrix(m4, valid=TRUE)
+
+```
+
+With binary classification the error rate dropped from 80-90% on 23 classes to 29-30% on 2 classes.
+
 
 

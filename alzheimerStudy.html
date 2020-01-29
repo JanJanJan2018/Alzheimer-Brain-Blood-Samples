@@ -2854,6 +2854,887 @@ head(Flu_Healthy_tidy)</code></pre>
 <p>It still remains to compare these samples of Alzheimer’s Disease patients across samples of the healthy controls, and the same for the EGCG overweight female treatment, the heart disease males, iron toxicity males and females for the vaccinations. Since immune genes are a good way of telling how stressed a person’s body is outside of what he or she can control this gives another option for analyzing health of a person to get vaccinated or when testing a new diet or discovering gene targets involved in an increased risk of death in heart disease or Alzheimer’s disease.</p>
 <p>What questions are you thinking about discovering given this data? Can you uncover what you know piled on top of what this data can explain for you to help answer the questions you have? If so, then play around with this data to answer those questions. If not, then go get more data or develop a different way to analyze this warehouse of data, then make note of any questions you have that you find interesting or curious and answer it with the data.</p>
 <hr />
+<hr />
+<p>After letting this analysis sit for a while, lets get the data of all 236 samples of stats and study samples ready for machine learning with R and save for later using a classification variable that will give the study each sample was derived from. To do this we must first identify each sample from its respective study and retrieve the sample meta as healthy or treatment/disease type. This dataset is already in our environment from earlier if you saved your RStudio information or kept this file open the entire time while running the previous commands, all6, is the table to use. Otherwise it was written to csv as ‘all_6_studies.csv’ to read in.</p>
+<pre class="r"><code>#Return the column names of all6
+colnames(all6)</code></pre>
+<pre><code>##   [1] &quot;GENE_SYMBOL&quot;                          
+##   [2] &quot;Tetanis_Means&quot;                        
+##   [3] &quot;Alz_Females_AD1_Mean&quot;                 
+##   [4] &quot;Alz_Females_control1_Mean&quot;            
+##   [5] &quot;Alz_males_AD1_Mean&quot;                   
+##   [6] &quot;Alz_males_control1_Mean&quot;              
+##   [7] &quot;Alz_FC_fem_ctrl_AD&quot;                   
+##   [8] &quot;Alz_FC_male_ctrl_AD&quot;                  
+##   [9] &quot;FC_MI_males&quot;                          
+##  [10] &quot;HealthyMI_Male_Means&quot;                 
+##  [11] &quot;MI_Male_Means&quot;                        
+##  [12] &quot;FC_t1&quot;                                
+##  [13] &quot;FC_t3&quot;                                
+##  [14] &quot;FC_t7&quot;                                
+##  [15] &quot;FC_t21&quot;                               
+##  [16] &quot;FC_nt1&quot;                               
+##  [17] &quot;FC_nt3&quot;                               
+##  [18] &quot;FC_nt7&quot;                               
+##  [19] &quot;FC_nt21&quot;                              
+##  [20] &quot;FCB_1&quot;                                
+##  [21] &quot;FCB_3&quot;                                
+##  [22] &quot;FCB_7&quot;                                
+##  [23] &quot;FCB_21&quot;                               
+##  [24] &quot;T0_Mean&quot;                              
+##  [25] &quot;T1_Mean&quot;                              
+##  [26] &quot;T3_Mean&quot;                              
+##  [27] &quot;T7_Mean&quot;                              
+##  [28] &quot;T21_Mean&quot;                             
+##  [29] &quot;NT0_Mean&quot;                             
+##  [30] &quot;NT1_Mean&quot;                             
+##  [31] &quot;NT3_Mean&quot;                             
+##  [32] &quot;NT7_Mean&quot;                             
+##  [33] &quot;NT21_Mean&quot;                            
+##  [34] &quot;FC_egcg_quer&quot;                         
+##  [35] &quot;FC_egcg&quot;                              
+##  [36] &quot;DE_EGCG&quot;                              
+##  [37] &quot;DE_Quercentin&quot;                        
+##  [38] &quot;Pre_Means&quot;                            
+##  [39] &quot;Post_EGCG_Means&quot;                      
+##  [40] &quot;Post_EGCG_Quercentin_Means&quot;           
+##  [41] &quot;hemo_G1M_Mean&quot;                        
+##  [42] &quot;hemo_G2M_Mean&quot;                        
+##  [43] &quot;hemo_G3M_Mean&quot;                        
+##  [44] &quot;hemo_G1F_Mean&quot;                        
+##  [45] &quot;hemo_G2F_Mean&quot;                        
+##  [46] &quot;hemo_G3F_Mean&quot;                        
+##  [47] &quot;hemo_healthyFemale_Mean&quot;              
+##  [48] &quot;hemo_healthyMale_Mean&quot;                
+##  [49] &quot;hemo_Female_Mean&quot;                     
+##  [50] &quot;hemo_Male_Mean&quot;                       
+##  [51] &quot;hemo_FC_1m&quot;                           
+##  [52] &quot;hemo_FC_2m&quot;                           
+##  [53] &quot;hemo_FC_3m&quot;                           
+##  [54] &quot;hemo_FC_1F&quot;                           
+##  [55] &quot;hemo_FC_2F&quot;                           
+##  [56] &quot;hemo_FC_3F&quot;                           
+##  [57] &quot;hemo_FC_malesOverall&quot;                 
+##  [58] &quot;hemo_FC_femalesOverall&quot;               
+##  [59] &quot;tetanis_GSM1443061&quot;                   
+##  [60] &quot;tetanis_GSM1443062&quot;                   
+##  [61] &quot;tetanis_GSM1443063&quot;                   
+##  [62] &quot;tetanis_GSM1443064&quot;                   
+##  [63] &quot;tetanis_GSM1443065&quot;                   
+##  [64] &quot;tetanis_GSM1443066&quot;                   
+##  [65] &quot;Alz_GSM2973262&quot;                       
+##  [66] &quot;Alz_GSM2973263&quot;                       
+##  [67] &quot;Alz_GSM2973264&quot;                       
+##  [68] &quot;Alz_GSM2973265&quot;                       
+##  [69] &quot;Alz_GSM2973266&quot;                       
+##  [70] &quot;Alz_GSM2973267&quot;                       
+##  [71] &quot;Alz_GSM2973268&quot;                       
+##  [72] &quot;Alz_GSM2973269&quot;                       
+##  [73] &quot;Alz_GSM2973270&quot;                       
+##  [74] &quot;Alz_GSM2973271&quot;                       
+##  [75] &quot;Alz_GSM2973272&quot;                       
+##  [76] &quot;Alz_GSM2973273&quot;                       
+##  [77] &quot;Alz_GSM2973274&quot;                       
+##  [78] &quot;Alz_GSM2973275&quot;                       
+##  [79] &quot;Alz_GSM2973276&quot;                       
+##  [80] &quot;Alz_GSM2973277&quot;                       
+##  [81] &quot;Alz_GSM2973278&quot;                       
+##  [82] &quot;Alz_GSM2973279&quot;                       
+##  [83] &quot;Alz_GSM2973280&quot;                       
+##  [84] &quot;Alz_GSM2973281&quot;                       
+##  [85] &quot;Alz_GSM2973282&quot;                       
+##  [86] &quot;Alz_GSM2973283&quot;                       
+##  [87] &quot;Alz_GSM2973284&quot;                       
+##  [88] &quot;Alz_GSM2973285&quot;                       
+##  [89] &quot;Alz_GSM2973286&quot;                       
+##  [90] &quot;Alz_GSM2973287&quot;                       
+##  [91] &quot;Alz_GSM2973288&quot;                       
+##  [92] &quot;Alz_GSM2973289&quot;                       
+##  [93] &quot;Alz_GSM2973290&quot;                       
+##  [94] &quot;Alz_GSM2973291&quot;                       
+##  [95] &quot;Alz_GSM2973292&quot;                       
+##  [96] &quot;Alz_GSM2973293&quot;                       
+##  [97] &quot;Alz_GSM2973294&quot;                       
+##  [98] &quot;Alz_GSM2973295&quot;                       
+##  [99] &quot;Alz_GSM2973296&quot;                       
+## [100] &quot;Alz_GSM2973297&quot;                       
+## [101] &quot;Alz_GSM2973298&quot;                       
+## [102] &quot;Alz_GSM2973299&quot;                       
+## [103] &quot;Alz_GSM2973300&quot;                       
+## [104] &quot;Alz_GSM2973301&quot;                       
+## [105] &quot;Alz_GSM2973302&quot;                       
+## [106] &quot;Alz_GSM2973303&quot;                       
+## [107] &quot;Alz_GSM2973304&quot;                       
+## [108] &quot;Alz_GSM2973305&quot;                       
+## [109] &quot;Alz_GSM2973306&quot;                       
+## [110] &quot;Alz_GSM2973307&quot;                       
+## [111] &quot;Alz_GSM2973308&quot;                       
+## [112] &quot;Alz_GSM2973309&quot;                       
+## [113] &quot;Alz_GSM2973310&quot;                       
+## [114] &quot;Alz_GSM2973311&quot;                       
+## [115] &quot;Alz_GSM2973312&quot;                       
+## [116] &quot;Alz_GSM2973313&quot;                       
+## [117] &quot;Alz_GSM2973314&quot;                       
+## [118] &quot;Alz_GSM2973315&quot;                       
+## [119] &quot;Alz_GSM2973316&quot;                       
+## [120] &quot;Alz_GSM2973317&quot;                       
+## [121] &quot;Alz_GSM2973318&quot;                       
+## [122] &quot;Alz_GSM2973319&quot;                       
+## [123] &quot;Alz_GSM2973320&quot;                       
+## [124] &quot;Alz_GSM2973321&quot;                       
+## [125] &quot;Alz_GSM2973322&quot;                       
+## [126] &quot;Alz_GSM2973323&quot;                       
+## [127] &quot;Alz_GSM2973324&quot;                       
+## [128] &quot;Alz_GSM2973325&quot;                       
+## [129] &quot;Alz_GSM2973326&quot;                       
+## [130] &quot;Alz_GSM2973327&quot;                       
+## [131] &quot;Alz_GSM2973328&quot;                       
+## [132] &quot;Alz_GSM2973329&quot;                       
+## [133] &quot;Alz_GSM2973330&quot;                       
+## [134] &quot;Alz_GSM2973331&quot;                       
+## [135] &quot;Alz_GSM2973332&quot;                       
+## [136] &quot;Alz_GSM2973333&quot;                       
+## [137] &quot;Alz_GSM2973334&quot;                       
+## [138] &quot;Alz_GSM2973335&quot;                       
+## [139] &quot;Alz_GSM2973336&quot;                       
+## [140] &quot;Alz_GSM2973337&quot;                       
+## [141] &quot;Alz_GSM2973338&quot;                       
+## [142] &quot;Alz_GSM2973339&quot;                       
+## [143] &quot;healthy_MI_Males_GSM4205364&quot;          
+## [144] &quot;healthy_MI_Males_GSM4205363&quot;          
+## [145] &quot;healthy_MI_Males_GSM4205362&quot;          
+## [146] &quot;healthy_MI_Males_GSM4205361&quot;          
+## [147] &quot;healthy_MI_Males_GSM4205360&quot;          
+## [148] &quot;healthy_MI_Males_GSM4205359&quot;          
+## [149] &quot;MI_Males_GSM4205358&quot;                  
+## [150] &quot;MI_Males_GSM4205357&quot;                  
+## [151] &quot;MI_Males_GSM4205356&quot;                  
+## [152] &quot;MI_Males_GSM4205355&quot;                  
+## [153] &quot;MI_Males_GSM4205354&quot;                  
+## [154] &quot;MI_Males_GSM4205353&quot;                  
+## [155] &quot;flu_GSM3409106_29_day_0&quot;              
+## [156] &quot;flu_GSM3409107_29_day_1&quot;              
+## [157] &quot;flu_GSM3409108_29_day_3&quot;              
+## [158] &quot;flu_GSM3409004_29_day_7&quot;              
+## [159] &quot;flu_GSM3409105_29_day_21_screening&quot;   
+## [160] &quot;flu_GSM3409006_30._day_0&quot;             
+## [161] &quot;flu_GSM3409007_30_day_1&quot;              
+## [162] &quot;flu_GSM3409008_30_day_3&quot;              
+## [163] &quot;flu_GSM3409009_30_day_7&quot;              
+## [164] &quot;flu_GSM3409005_30_day_21_screening&quot;   
+## [165] &quot;flu_GSM3409013_05_.day_0&quot;             
+## [166] &quot;flu_GSM3409014_05_day_1&quot;              
+## [167] &quot;flu_GSM3409015_05_day_3&quot;              
+## [168] &quot;flu_GSM3409016_05_day_7&quot;              
+## [169] &quot;flu_GSM3409012_05_day_21_screening&quot;   
+## [170] &quot;flu_GSM3409161_33_day_0_no&quot;           
+## [171] &quot;flu_GSM3409162_33_day_1_no&quot;           
+## [172] &quot;flu_GSM3409163_33_day_3_no&quot;           
+## [173] &quot;flu_GSM3409111_33._day_7_no&quot;          
+## [174] &quot;flu_GSM3409160_33_day_21_screening_no&quot;
+## [175] &quot;flu_GSM3409124_36_day_0_no&quot;           
+## [176] &quot;flu_GSM3409125_36_day_1_no&quot;           
+## [177] &quot;flu_GSM3409126_36_day_3_no&quot;           
+## [178] &quot;flu_GSM3409127_36_day_7_no&quot;           
+## [179] &quot;flu_GSM3409123_36_day_21_screening_no&quot;
+## [180] &quot;flu_GSM3409135_38_day_0_no&quot;           
+## [181] &quot;flu_GSM3409136_38_day_1_no&quot;           
+## [182] &quot;flu_GSM3409137_38_day_3_no&quot;           
+## [183] &quot;flu_GSM3409138_38_day_7_no&quot;           
+## [184] &quot;flu_GSM3409134_38_day_21_screening_no&quot;
+## [185] &quot;EGCG_pre_GSM1923000&quot;                  
+## [186] &quot;EGCG_pre_GSM1923004&quot;                  
+## [187] &quot;EGCG_pre_GSM1923010&quot;                  
+## [188] &quot;EGCG_pre_GSM1923012&quot;                  
+## [189] &quot;EGCG_pre_GSM1923007&quot;                  
+## [190] &quot;EGCG_pre_GSM1923020&quot;                  
+## [191] &quot;EGCG_pre_GSM192998&quot;                   
+## [192] &quot;EGCG_pre_GSM1922995&quot;                  
+## [193] &quot;EGCG_pre_GSM1923002&quot;                  
+## [194] &quot;EGCG_pre_GSM1923008&quot;                  
+## [195] &quot;EGCG_pre_GSM1923015&quot;                  
+## [196] &quot;EGCG_pre_GSM1923018&quot;                  
+## [197] &quot;EGCG_pre_GSM1923022&quot;                  
+## [198] &quot;EGCG_pre_GSM1923017&quot;                  
+## [199] &quot;EGCG_post_EG_GSM1923001&quot;              
+## [200] &quot;EGCG_post_EG_GSM1923005&quot;              
+## [201] &quot;EGCG_post_EG_GSM1923011&quot;              
+## [202] &quot;EGCG_post_EG_GSM1923013&quot;              
+## [203] &quot;EGCG_post_EG_GSM1923021&quot;              
+## [204] &quot;EGCG_post_EG_GSM1923006&quot;              
+## [205] &quot;EGCG_post_EG_GSM1923014&quot;              
+## [206] &quot;EGCG_post_EQ_GSM192996&quot;               
+## [207] &quot;EGCG_post_EQ_GSM1923003&quot;              
+## [208] &quot;EGCG_post_EQ_GSM1923009&quot;              
+## [209] &quot;EGCG_post_EQ_GSM1923016&quot;              
+## [210] &quot;EGCG_post_EQ_GSM1923019&quot;              
+## [211] &quot;EGCG_post_EQ_GSM1923023&quot;              
+## [212] &quot;EGCG_post_EQ_GSM192997&quot;               
+## [213] &quot;hemo_GSM3440208&quot;                      
+## [214] &quot;hemo_GSM3440209&quot;                      
+## [215] &quot;hemo_GSM3440210&quot;                      
+## [216] &quot;hemo_GSM3440211&quot;                      
+## [217] &quot;hemo_GSM3440212&quot;                      
+## [218] &quot;hemo_GSM3440213&quot;                      
+## [219] &quot;hemo_GSM3440214&quot;                      
+## [220] &quot;hemo_GSM3440215&quot;                      
+## [221] &quot;hemo_GSM3440216&quot;                      
+## [222] &quot;hemo_GSM3440217&quot;                      
+## [223] &quot;hemo_GSM3440218&quot;                      
+## [224] &quot;hemo_GSM3440219&quot;                      
+## [225] &quot;hemo_GSM3440220&quot;                      
+## [226] &quot;hemo_GSM3440221&quot;                      
+## [227] &quot;hemo_GSM3440222&quot;                      
+## [228] &quot;hemo_GSM3440223&quot;                      
+## [229] &quot;hemo_GSM3440224&quot;                      
+## [230] &quot;hemo_GSM3440225&quot;                      
+## [231] &quot;hemo_GSM3440226&quot;                      
+## [232] &quot;hemo_GSM3440227&quot;                      
+## [233] &quot;hemo_GSM3440228&quot;                      
+## [234] &quot;hemo_GSM3440229&quot;                      
+## [235] &quot;hemo_GSM3440230&quot;                      
+## [236] &quot;hemo_GSM3440231&quot;</code></pre>
+<p>The first 58 fields are the stat fields created for respective data sets and won’t be included in the machine learning data set.</p>
+<ul>
+<li><p>The tetanis data sets didn’t have any age or gender information provided and were all healthy so it will not need to be identified separately from healthy classification.</p></li>
+<li><p>The next samples are for Alzheimers, and these samples don’t say the healthy or disease state, so they will need to have that information attached for <strong>columns 65 to 142</strong>.</p></li>
+<li><p>The MI samples as <strong>columns 143 to 154</strong> are already identified as healthy or MI.</p></li>
+<li><p>The flu samples are identified by flu as is with antibiotics or flu with out antibiotics from healthy donors in <strong>columns 155 to 184</strong></p></li>
+<li><p>The EGCG samples are also identified already as using or not using EGCG in <strong>columns 185 to 212</strong> in the column name.</p></li>
+<li><p>The hemochromatosis columns in <strong>213 to 236</strong> need to be identified as healthy or disease.</p></li>
+</ul>
+<p>I went through the subset tables in the Alzheimer and hemochromatosis gender and healthy tables to get the respective indices of the gender and healthy identified samples in this table.Revisiting the Flu+anti or not study, the day 0 is also the healthy state pre-vaccination that can be used as healthy blood , but without attached gender information. The flu+antibiotics gave antibiotics orally between day1 and day3</p>
+<pre class="r"><code>AD_healthy_male &lt;- c(74,76,82,86,94,96,99,102,123,126,129,130,132,133,134,141)
+AD_healthy_female &lt;-c(72,87,88,89,91,97,100,114,116,119,120,124,125,127,128,138)
+AD_male &lt;- c(65,66,69,70,75,79,81,85,90,95,98,104,109,110,111,115,118,121,135,136,139,140)
+AD_female &lt;- c(67,68,71,73,77,78,80,83,84,92,93,101,103,105,106,107,108,112,113,117,122,131,137,142)
+Hemo_healthy_female &lt;- c(234,235)
+Hemo_healthy_male &lt;- c(231,232,233,236)
+Hemo_disease_male &lt;- c(213:218,220,221,223:226,230)
+Hemo_disease_female &lt;- c(219,222,227:229)
+female_overweight &lt;- c(185:198)
+female_overweight_EGCG_treated &lt;- c(199:205)
+female_overweight_EGCG_Plus_treated &lt;- c(206:212)
+flu_healthy_control &lt;- c(155,160,165,170,175,180)
+flu_Plus_antibiotics_day1 &lt;- c(156,161,166)
+flu_Plus_antibiotics_day3 &lt;- c(157,162,167)
+flu_Plus_antibiotics_day7 &lt;- c(158,163,168)
+flu_Plus_antibiotics_day21 &lt;- c(159,164,169)
+flu_no_antibiotics_day1 &lt;- c(171,176,181)
+flu_no_antibiotics_day3 &lt;- c(172,177,182)
+flu_no_antibiotics_day7 &lt;- c(173,178,183)
+flu_no_antibiotics_day21 &lt;- c(174,179,184)
+MI_healthy_males &lt;- c(143:148)
+MI_males &lt;- c(149:154)
+tetanis_immunized &lt;- c(59:64)
+
+SamplesOnly &lt;- all6[,c(1,AD_healthy_male,AD_healthy_female,AD_male,AD_female,
+                       Hemo_healthy_female,Hemo_healthy_male,Hemo_disease_male,
+                       Hemo_disease_female,
+                       female_overweight,female_overweight_EGCG_treated,
+                       female_overweight_EGCG_Plus_treated,
+                       flu_healthy_control,flu_Plus_antibiotics_day1,
+                       flu_Plus_antibiotics_day3,flu_Plus_antibiotics_day7,
+                       flu_Plus_antibiotics_day21,flu_no_antibiotics_day1,
+                       flu_no_antibiotics_day3,flu_no_antibiotics_day7,
+                       flu_no_antibiotics_day21,MI_healthy_males,
+                       MI_males,tetanis_immunized),]
+row.names(SamplesOnly) &lt;- SamplesOnly$GENE_SYMBOL
+SamplesOnly2 &lt;- SamplesOnly[,-1]</code></pre>
+<p>Now for making the class identifier as a vector to use in classifying these samples by type.</p>
+<pre class="r"><code>AD_hm &lt;- rep(&#39;AD Healthy Male&#39;,length(AD_healthy_male))
+AD_hf &lt;- rep(&#39;AD Healthy Female&#39;, length(AD_healthy_female))
+AD_m &lt;- rep(&#39;AD Male&#39;, length(AD_male))
+AD_f &lt;- rep(&#39;AD Female&#39;, length(AD_female))
+Hemo_hf &lt;- rep(&#39;Hemo Healthy Female&#39;, length(Hemo_healthy_female))
+Hemo_hm &lt;- rep(&#39;Hemo Healthy Male&#39;, length(Hemo_healthy_male))
+Hemo_m &lt;- rep(&#39;Hemo Male&#39;, length(Hemo_disease_male))
+Hemo_f &lt;- rep(&#39;Hemo Female&#39;, length(Hemo_disease_female))
+overweight_female &lt;- rep(&#39;Overweight Female&#39;, length(female_overweight))
+overweight_female_EGCG &lt;- rep(&#39;Overweight Female EGCG Treated&#39;,
+                              length(female_overweight_EGCG_treated))
+overweight_female_EGCG_Plus &lt;- rep(&#39;Overweight Female EGCG+fishOil+VitC&#39;, 
+                                   length(female_overweight_EGCG_Plus_treated))
+flu_not_immunized_yet &lt;- rep(&#39;Flu non immunized healthy&#39;,
+                             length(flu_healthy_control))
+flu_Plus_day1 &lt;- rep(&#39;Flu Immunized Plus Antibiotics Day 1&#39;,
+                     length(flu_Plus_antibiotics_day1))
+flu_Plus_day3 &lt;- rep(&#39;Flu Immunized Plus Antibiotics Day 3&#39;,
+                     length(flu_Plus_antibiotics_day3))
+flu_Plus_day7 &lt;- rep(&#39;Flu Immunized Plus Antibiotics Day 7&#39;,
+                     length(flu_Plus_antibiotics_day7))
+flu_Plus_day21 &lt;- rep(&#39;Flu Immunized Plus Antibiotics Day 21&#39;,
+                      length(flu_Plus_antibiotics_day21))
+flu_only_day1 &lt;- rep(&#39;Flu Immunized Only Day 1&#39;, length(flu_no_antibiotics_day1))
+flu_only_day3 &lt;- rep(&#39;Flu Immunized Only Day 3&#39;, length(flu_no_antibiotics_day3))
+flu_only_day7 &lt;- rep(&#39;Flu Immunized Only Day 7&#39;, length(flu_no_antibiotics_day7))
+flu_only_day21 &lt;- rep(&#39;Flu Immunized Only Day 21&#39;, length(flu_no_antibiotics_day21))
+MI_hm &lt;- rep(&#39;MI Healthy Males&#39;, length(MI_healthy_males))
+MI_m &lt;- rep(&#39;MI Males&#39;, length(MI_males))
+tet &lt;- rep(&#39;Tetanis Immunized&#39;, length(tetanis_immunized))
+
+ClassType &lt;- as.data.frame(c(AD_hm, AD_hf, AD_m, AD_f, Hemo_hf, Hemo_hm, Hemo_m, Hemo_f,
+               overweight_female, overweight_female_EGCG, overweight_female_EGCG_Plus,
+               flu_not_immunized_yet, flu_Plus_day1, flu_Plus_day3, flu_Plus_day7,
+               flu_Plus_day21, flu_only_day1, flu_only_day3, flu_only_day7,
+               flu_only_day21, MI_hm, MI_m, tet))
+colnames(ClassType) &lt;- &#39;Class_Type&#39;
+Class2 &lt;- as.data.frame(t(ClassType))
+colnames(Class2) &lt;- colnames(SamplesOnly2)
+
+t(Class2) #Compare the row names when transposed to the assigned Class_Type</code></pre>
+<pre><code>##                                       Class_Type                             
+## Alz_GSM2973271                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973273                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973279                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973283                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973291                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973293                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973296                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973299                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973320                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973323                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973326                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973327                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973329                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973330                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973331                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973338                        &quot;AD Healthy Male&quot;                      
+## Alz_GSM2973269                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973284                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973285                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973286                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973288                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973294                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973297                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973311                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973313                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973316                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973317                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973321                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973322                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973324                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973325                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973335                        &quot;AD Healthy Female&quot;                    
+## Alz_GSM2973262                        &quot;AD Male&quot;                              
+## Alz_GSM2973263                        &quot;AD Male&quot;                              
+## Alz_GSM2973266                        &quot;AD Male&quot;                              
+## Alz_GSM2973267                        &quot;AD Male&quot;                              
+## Alz_GSM2973272                        &quot;AD Male&quot;                              
+## Alz_GSM2973276                        &quot;AD Male&quot;                              
+## Alz_GSM2973278                        &quot;AD Male&quot;                              
+## Alz_GSM2973282                        &quot;AD Male&quot;                              
+## Alz_GSM2973287                        &quot;AD Male&quot;                              
+## Alz_GSM2973292                        &quot;AD Male&quot;                              
+## Alz_GSM2973295                        &quot;AD Male&quot;                              
+## Alz_GSM2973301                        &quot;AD Male&quot;                              
+## Alz_GSM2973306                        &quot;AD Male&quot;                              
+## Alz_GSM2973307                        &quot;AD Male&quot;                              
+## Alz_GSM2973308                        &quot;AD Male&quot;                              
+## Alz_GSM2973312                        &quot;AD Male&quot;                              
+## Alz_GSM2973315                        &quot;AD Male&quot;                              
+## Alz_GSM2973318                        &quot;AD Male&quot;                              
+## Alz_GSM2973332                        &quot;AD Male&quot;                              
+## Alz_GSM2973333                        &quot;AD Male&quot;                              
+## Alz_GSM2973336                        &quot;AD Male&quot;                              
+## Alz_GSM2973337                        &quot;AD Male&quot;                              
+## Alz_GSM2973264                        &quot;AD Female&quot;                            
+## Alz_GSM2973265                        &quot;AD Female&quot;                            
+## Alz_GSM2973268                        &quot;AD Female&quot;                            
+## Alz_GSM2973270                        &quot;AD Female&quot;                            
+## Alz_GSM2973274                        &quot;AD Female&quot;                            
+## Alz_GSM2973275                        &quot;AD Female&quot;                            
+## Alz_GSM2973277                        &quot;AD Female&quot;                            
+## Alz_GSM2973280                        &quot;AD Female&quot;                            
+## Alz_GSM2973281                        &quot;AD Female&quot;                            
+## Alz_GSM2973289                        &quot;AD Female&quot;                            
+## Alz_GSM2973290                        &quot;AD Female&quot;                            
+## Alz_GSM2973298                        &quot;AD Female&quot;                            
+## Alz_GSM2973300                        &quot;AD Female&quot;                            
+## Alz_GSM2973302                        &quot;AD Female&quot;                            
+## Alz_GSM2973303                        &quot;AD Female&quot;                            
+## Alz_GSM2973304                        &quot;AD Female&quot;                            
+## Alz_GSM2973305                        &quot;AD Female&quot;                            
+## Alz_GSM2973309                        &quot;AD Female&quot;                            
+## Alz_GSM2973310                        &quot;AD Female&quot;                            
+## Alz_GSM2973314                        &quot;AD Female&quot;                            
+## Alz_GSM2973319                        &quot;AD Female&quot;                            
+## Alz_GSM2973328                        &quot;AD Female&quot;                            
+## Alz_GSM2973334                        &quot;AD Female&quot;                            
+## Alz_GSM2973339                        &quot;AD Female&quot;                            
+## hemo_GSM3440229                       &quot;Hemo Healthy Female&quot;                  
+## hemo_GSM3440230                       &quot;Hemo Healthy Female&quot;                  
+## hemo_GSM3440226                       &quot;Hemo Healthy Male&quot;                    
+## hemo_GSM3440227                       &quot;Hemo Healthy Male&quot;                    
+## hemo_GSM3440228                       &quot;Hemo Healthy Male&quot;                    
+## hemo_GSM3440231                       &quot;Hemo Healthy Male&quot;                    
+## hemo_GSM3440208                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440209                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440210                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440211                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440212                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440213                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440215                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440216                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440218                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440219                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440220                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440221                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440225                       &quot;Hemo Male&quot;                            
+## hemo_GSM3440214                       &quot;Hemo Female&quot;                          
+## hemo_GSM3440217                       &quot;Hemo Female&quot;                          
+## hemo_GSM3440222                       &quot;Hemo Female&quot;                          
+## hemo_GSM3440223                       &quot;Hemo Female&quot;                          
+## hemo_GSM3440224                       &quot;Hemo Female&quot;                          
+## EGCG_pre_GSM1923000                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923004                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923010                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923012                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923007                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923020                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM192998                    &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1922995                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923002                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923008                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923015                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923018                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923022                   &quot;Overweight Female&quot;                    
+## EGCG_pre_GSM1923017                   &quot;Overweight Female&quot;                    
+## EGCG_post_EG_GSM1923001               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923005               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923011               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923013               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923021               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923006               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EG_GSM1923014               &quot;Overweight Female EGCG Treated&quot;       
+## EGCG_post_EQ_GSM192996                &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM1923003               &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM1923009               &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM1923016               &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM1923019               &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM1923023               &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## EGCG_post_EQ_GSM192997                &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## flu_GSM3409106_29_day_0               &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409006_30._day_0              &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409013_05_.day_0              &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409161_33_day_0_no            &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409124_36_day_0_no            &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409135_38_day_0_no            &quot;Flu non immunized healthy&quot;            
+## flu_GSM3409107_29_day_1               &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## flu_GSM3409007_30_day_1               &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## flu_GSM3409014_05_day_1               &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## flu_GSM3409108_29_day_3               &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## flu_GSM3409008_30_day_3               &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## flu_GSM3409015_05_day_3               &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## flu_GSM3409004_29_day_7               &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## flu_GSM3409009_30_day_7               &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## flu_GSM3409016_05_day_7               &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## flu_GSM3409105_29_day_21_screening    &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## flu_GSM3409005_30_day_21_screening    &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## flu_GSM3409012_05_day_21_screening    &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## flu_GSM3409162_33_day_1_no            &quot;Flu Immunized Only Day 1&quot;             
+## flu_GSM3409125_36_day_1_no            &quot;Flu Immunized Only Day 1&quot;             
+## flu_GSM3409136_38_day_1_no            &quot;Flu Immunized Only Day 1&quot;             
+## flu_GSM3409163_33_day_3_no            &quot;Flu Immunized Only Day 3&quot;             
+## flu_GSM3409126_36_day_3_no            &quot;Flu Immunized Only Day 3&quot;             
+## flu_GSM3409137_38_day_3_no            &quot;Flu Immunized Only Day 3&quot;             
+## flu_GSM3409111_33._day_7_no           &quot;Flu Immunized Only Day 7&quot;             
+## flu_GSM3409127_36_day_7_no            &quot;Flu Immunized Only Day 7&quot;             
+## flu_GSM3409138_38_day_7_no            &quot;Flu Immunized Only Day 7&quot;             
+## flu_GSM3409160_33_day_21_screening_no &quot;Flu Immunized Only Day 21&quot;            
+## flu_GSM3409123_36_day_21_screening_no &quot;Flu Immunized Only Day 21&quot;            
+## flu_GSM3409134_38_day_21_screening_no &quot;Flu Immunized Only Day 21&quot;            
+## healthy_MI_Males_GSM4205364           &quot;MI Healthy Males&quot;                     
+## healthy_MI_Males_GSM4205363           &quot;MI Healthy Males&quot;                     
+## healthy_MI_Males_GSM4205362           &quot;MI Healthy Males&quot;                     
+## healthy_MI_Males_GSM4205361           &quot;MI Healthy Males&quot;                     
+## healthy_MI_Males_GSM4205360           &quot;MI Healthy Males&quot;                     
+## healthy_MI_Males_GSM4205359           &quot;MI Healthy Males&quot;                     
+## MI_Males_GSM4205358                   &quot;MI Males&quot;                             
+## MI_Males_GSM4205357                   &quot;MI Males&quot;                             
+## MI_Males_GSM4205356                   &quot;MI Males&quot;                             
+## MI_Males_GSM4205355                   &quot;MI Males&quot;                             
+## MI_Males_GSM4205354                   &quot;MI Males&quot;                             
+## MI_Males_GSM4205353                   &quot;MI Males&quot;                             
+## tetanis_GSM1443061                    &quot;Tetanis Immunized&quot;                    
+## tetanis_GSM1443062                    &quot;Tetanis Immunized&quot;                    
+## tetanis_GSM1443063                    &quot;Tetanis Immunized&quot;                    
+## tetanis_GSM1443064                    &quot;Tetanis Immunized&quot;                    
+## tetanis_GSM1443065                    &quot;Tetanis Immunized&quot;                    
+## tetanis_GSM1443066                    &quot;Tetanis Immunized&quot;</code></pre>
+<p>Replace the Samples GSM IDs with the class type labels.</p>
+<pre class="r"><code>SamplesOnly3 &lt;- SamplesOnly2
+colnames(SamplesOnly3) &lt;- ClassType$Class_Type
+write.csv(SamplesOnly3, &#39;Dracula.csv&#39;, row.names=TRUE)
+
+dim(SamplesOnly3)</code></pre>
+<pre><code>## [1] 12845   178</code></pre>
+<pre class="r"><code>colnames(SamplesOnly3)</code></pre>
+<pre><code>##   [1] &quot;AD Healthy Male&quot;                      
+##   [2] &quot;AD Healthy Male&quot;                      
+##   [3] &quot;AD Healthy Male&quot;                      
+##   [4] &quot;AD Healthy Male&quot;                      
+##   [5] &quot;AD Healthy Male&quot;                      
+##   [6] &quot;AD Healthy Male&quot;                      
+##   [7] &quot;AD Healthy Male&quot;                      
+##   [8] &quot;AD Healthy Male&quot;                      
+##   [9] &quot;AD Healthy Male&quot;                      
+##  [10] &quot;AD Healthy Male&quot;                      
+##  [11] &quot;AD Healthy Male&quot;                      
+##  [12] &quot;AD Healthy Male&quot;                      
+##  [13] &quot;AD Healthy Male&quot;                      
+##  [14] &quot;AD Healthy Male&quot;                      
+##  [15] &quot;AD Healthy Male&quot;                      
+##  [16] &quot;AD Healthy Male&quot;                      
+##  [17] &quot;AD Healthy Female&quot;                    
+##  [18] &quot;AD Healthy Female&quot;                    
+##  [19] &quot;AD Healthy Female&quot;                    
+##  [20] &quot;AD Healthy Female&quot;                    
+##  [21] &quot;AD Healthy Female&quot;                    
+##  [22] &quot;AD Healthy Female&quot;                    
+##  [23] &quot;AD Healthy Female&quot;                    
+##  [24] &quot;AD Healthy Female&quot;                    
+##  [25] &quot;AD Healthy Female&quot;                    
+##  [26] &quot;AD Healthy Female&quot;                    
+##  [27] &quot;AD Healthy Female&quot;                    
+##  [28] &quot;AD Healthy Female&quot;                    
+##  [29] &quot;AD Healthy Female&quot;                    
+##  [30] &quot;AD Healthy Female&quot;                    
+##  [31] &quot;AD Healthy Female&quot;                    
+##  [32] &quot;AD Healthy Female&quot;                    
+##  [33] &quot;AD Male&quot;                              
+##  [34] &quot;AD Male&quot;                              
+##  [35] &quot;AD Male&quot;                              
+##  [36] &quot;AD Male&quot;                              
+##  [37] &quot;AD Male&quot;                              
+##  [38] &quot;AD Male&quot;                              
+##  [39] &quot;AD Male&quot;                              
+##  [40] &quot;AD Male&quot;                              
+##  [41] &quot;AD Male&quot;                              
+##  [42] &quot;AD Male&quot;                              
+##  [43] &quot;AD Male&quot;                              
+##  [44] &quot;AD Male&quot;                              
+##  [45] &quot;AD Male&quot;                              
+##  [46] &quot;AD Male&quot;                              
+##  [47] &quot;AD Male&quot;                              
+##  [48] &quot;AD Male&quot;                              
+##  [49] &quot;AD Male&quot;                              
+##  [50] &quot;AD Male&quot;                              
+##  [51] &quot;AD Male&quot;                              
+##  [52] &quot;AD Male&quot;                              
+##  [53] &quot;AD Male&quot;                              
+##  [54] &quot;AD Male&quot;                              
+##  [55] &quot;AD Female&quot;                            
+##  [56] &quot;AD Female&quot;                            
+##  [57] &quot;AD Female&quot;                            
+##  [58] &quot;AD Female&quot;                            
+##  [59] &quot;AD Female&quot;                            
+##  [60] &quot;AD Female&quot;                            
+##  [61] &quot;AD Female&quot;                            
+##  [62] &quot;AD Female&quot;                            
+##  [63] &quot;AD Female&quot;                            
+##  [64] &quot;AD Female&quot;                            
+##  [65] &quot;AD Female&quot;                            
+##  [66] &quot;AD Female&quot;                            
+##  [67] &quot;AD Female&quot;                            
+##  [68] &quot;AD Female&quot;                            
+##  [69] &quot;AD Female&quot;                            
+##  [70] &quot;AD Female&quot;                            
+##  [71] &quot;AD Female&quot;                            
+##  [72] &quot;AD Female&quot;                            
+##  [73] &quot;AD Female&quot;                            
+##  [74] &quot;AD Female&quot;                            
+##  [75] &quot;AD Female&quot;                            
+##  [76] &quot;AD Female&quot;                            
+##  [77] &quot;AD Female&quot;                            
+##  [78] &quot;AD Female&quot;                            
+##  [79] &quot;Hemo Healthy Female&quot;                  
+##  [80] &quot;Hemo Healthy Female&quot;                  
+##  [81] &quot;Hemo Healthy Male&quot;                    
+##  [82] &quot;Hemo Healthy Male&quot;                    
+##  [83] &quot;Hemo Healthy Male&quot;                    
+##  [84] &quot;Hemo Healthy Male&quot;                    
+##  [85] &quot;Hemo Male&quot;                            
+##  [86] &quot;Hemo Male&quot;                            
+##  [87] &quot;Hemo Male&quot;                            
+##  [88] &quot;Hemo Male&quot;                            
+##  [89] &quot;Hemo Male&quot;                            
+##  [90] &quot;Hemo Male&quot;                            
+##  [91] &quot;Hemo Male&quot;                            
+##  [92] &quot;Hemo Male&quot;                            
+##  [93] &quot;Hemo Male&quot;                            
+##  [94] &quot;Hemo Male&quot;                            
+##  [95] &quot;Hemo Male&quot;                            
+##  [96] &quot;Hemo Male&quot;                            
+##  [97] &quot;Hemo Male&quot;                            
+##  [98] &quot;Hemo Female&quot;                          
+##  [99] &quot;Hemo Female&quot;                          
+## [100] &quot;Hemo Female&quot;                          
+## [101] &quot;Hemo Female&quot;                          
+## [102] &quot;Hemo Female&quot;                          
+## [103] &quot;Overweight Female&quot;                    
+## [104] &quot;Overweight Female&quot;                    
+## [105] &quot;Overweight Female&quot;                    
+## [106] &quot;Overweight Female&quot;                    
+## [107] &quot;Overweight Female&quot;                    
+## [108] &quot;Overweight Female&quot;                    
+## [109] &quot;Overweight Female&quot;                    
+## [110] &quot;Overweight Female&quot;                    
+## [111] &quot;Overweight Female&quot;                    
+## [112] &quot;Overweight Female&quot;                    
+## [113] &quot;Overweight Female&quot;                    
+## [114] &quot;Overweight Female&quot;                    
+## [115] &quot;Overweight Female&quot;                    
+## [116] &quot;Overweight Female&quot;                    
+## [117] &quot;Overweight Female EGCG Treated&quot;       
+## [118] &quot;Overweight Female EGCG Treated&quot;       
+## [119] &quot;Overweight Female EGCG Treated&quot;       
+## [120] &quot;Overweight Female EGCG Treated&quot;       
+## [121] &quot;Overweight Female EGCG Treated&quot;       
+## [122] &quot;Overweight Female EGCG Treated&quot;       
+## [123] &quot;Overweight Female EGCG Treated&quot;       
+## [124] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [125] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [126] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [127] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [128] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [129] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [130] &quot;Overweight Female EGCG+fishOil+VitC&quot;  
+## [131] &quot;Flu non immunized healthy&quot;            
+## [132] &quot;Flu non immunized healthy&quot;            
+## [133] &quot;Flu non immunized healthy&quot;            
+## [134] &quot;Flu non immunized healthy&quot;            
+## [135] &quot;Flu non immunized healthy&quot;            
+## [136] &quot;Flu non immunized healthy&quot;            
+## [137] &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## [138] &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## [139] &quot;Flu Immunized Plus Antibiotics Day 1&quot; 
+## [140] &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## [141] &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## [142] &quot;Flu Immunized Plus Antibiotics Day 3&quot; 
+## [143] &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## [144] &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## [145] &quot;Flu Immunized Plus Antibiotics Day 7&quot; 
+## [146] &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## [147] &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## [148] &quot;Flu Immunized Plus Antibiotics Day 21&quot;
+## [149] &quot;Flu Immunized Only Day 1&quot;             
+## [150] &quot;Flu Immunized Only Day 1&quot;             
+## [151] &quot;Flu Immunized Only Day 1&quot;             
+## [152] &quot;Flu Immunized Only Day 3&quot;             
+## [153] &quot;Flu Immunized Only Day 3&quot;             
+## [154] &quot;Flu Immunized Only Day 3&quot;             
+## [155] &quot;Flu Immunized Only Day 7&quot;             
+## [156] &quot;Flu Immunized Only Day 7&quot;             
+## [157] &quot;Flu Immunized Only Day 7&quot;             
+## [158] &quot;Flu Immunized Only Day 21&quot;            
+## [159] &quot;Flu Immunized Only Day 21&quot;            
+## [160] &quot;Flu Immunized Only Day 21&quot;            
+## [161] &quot;MI Healthy Males&quot;                     
+## [162] &quot;MI Healthy Males&quot;                     
+## [163] &quot;MI Healthy Males&quot;                     
+## [164] &quot;MI Healthy Males&quot;                     
+## [165] &quot;MI Healthy Males&quot;                     
+## [166] &quot;MI Healthy Males&quot;                     
+## [167] &quot;MI Males&quot;                             
+## [168] &quot;MI Males&quot;                             
+## [169] &quot;MI Males&quot;                             
+## [170] &quot;MI Males&quot;                             
+## [171] &quot;MI Males&quot;                             
+## [172] &quot;MI Males&quot;                             
+## [173] &quot;Tetanis Immunized&quot;                    
+## [174] &quot;Tetanis Immunized&quot;                    
+## [175] &quot;Tetanis Immunized&quot;                    
+## [176] &quot;Tetanis Immunized&quot;                    
+## [177] &quot;Tetanis Immunized&quot;                    
+## [178] &quot;Tetanis Immunized&quot;</code></pre>
+<pre class="r"><code>classNames &lt;- colnames(SamplesOnly3)</code></pre>
+<p>The above data was written to file and almost machine learning ready, but it would be a wide matrix of 12,845 features of gene symbols and 178 rows of class if transposed as is. So it will be filtered to the top FC genes from all6 for Alzheimer females and bottom genes of the same. No particular reason the genes with the most change in Alzheimer’s Disease for females was selected, but it is known the brain controls many functions and AD patients die slowly by having body functions shut off until sadly and ultimately they cannot swallow their own saliva or breathe (many clients have had loved ones die of AD whom were told by nurses and doctors that this is how they die–maybe a 3rd party fact).</p>
+<pre class="r"><code>AD_top125 &lt;- all6[order(all6$Alz_FC_fem_ctrl_AD, decreasing=TRUE)[1:125],c(1,7)]
+AD_bottom125 &lt;- all6[order(all6$Alz_FC_fem_ctrl_AD)[1:125],c(1,7)]
+AD250 &lt;- rbind(AD_top125,AD_bottom125)
+SamplesOnly3$Gene &lt;- row.names(SamplesOnly3)
+SamplesOnly4 &lt;- merge(AD250,SamplesOnly3, by.x=&#39;GENE_SYMBOL&#39;, by.y=&#39;Gene&#39;)
+row.names(SamplesOnly4) &lt;- SamplesOnly4$GENE_SYMBOL
+Samples250 &lt;- SamplesOnly4[,-c(1:2)]
+
+ML_250 &lt;- as.data.frame(t(Samples250))
+ML_250$Class_Type &lt;- classNames
+row.names(ML_250) &lt;- NULL
+ML_ready_250 &lt;- ML_250[,c(251,1:250)]
+write.csv(ML_ready_250, &#39;ML_ready_250.csv&#39;, row.names=FALSE)</code></pre>
+<hr />
+<hr />
+<p>We can use this latest ML_ready_250, or machine learning ready table of 250 genes in common most/least expressed in AD females with the classifications (23) using a fast and relatively new ML software called H2O.</p>
+<p>A note on H2O: it is faster than most machine learning data sets and is used as a better compression format for very large datasets, while being an extension to Principal Component Analysis (PCA) in extracting the PCAs with the most variance to analyze. These commands don’t take very long to run.</p>
+<p><a href="http://docs.h2o.ai/h2o-tutorials/latest-stable/tutorials/glm/glm.html">H20 tutorial</a> Installed <a href="https://docs.oracle.com/en/java/javase/13/index.html">java for 64bit</a> when R didn’t run</p>
+<pre class="r"><code>#install.packages(&#39;h2o&#39;)
+library(h2o)</code></pre>
+<pre class="r"><code>h2o.init(nthreads=-1, max_mem_size=&quot;2G&quot;)</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         36 minutes 57 seconds 
+##     H2O cluster timezone:       America/Los_Angeles 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.28.0.2 
+##     H2O cluster version age:    8 days  
+##     H2O cluster name:           H2O_started_from_R_m_vji152 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   1.97 GB 
+##     H2O cluster total cores:    2 
+##     H2O cluster allowed cores:  2 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     H2O API Extensions:         Amazon S3, Algos, AutoML, Core V3, TargetEncoder, Core V4 
+##     R Version:                  R version 3.6.2 (2019-12-12)</code></pre>
+<pre class="r"><code>h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath(&quot;ML_ready_250.csv&quot;))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>#h2o.summary(D) would print the summary stats of these 251 features
+
+data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c(&quot;train&quot;,&quot;test&quot;,&quot;valid&quot;))
+names(data) &lt;- c(&#39;Train&#39;,&#39;Test&#39;,&#39;Valid&#39;) </code></pre>
+<p>multinomial model</p>
+<pre class="r"><code>m1 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = &#39;Class_Type&#39;,
+             family=&#39;multinomial&#39;,
+             solver=&#39;L_BFGS&#39;)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>h2o.confusionMatrix(m1, valid=TRUE)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["AD Female"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Female"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Male"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["AD Male"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 1"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 21"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 3"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 7"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 1"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 21"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 3"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 7"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Flu non immunized healthy"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["Hemo Female"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Female"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Male"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["Hemo Male"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["MI Healthy Males"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["MI Males"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["Overweight Female"],"name":[20],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG Treated"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG+fishOil+VitC"],"name":[22],"type":["dbl"],"align":["right"]},{"label":["Tetanis Immunized"],"name":[23],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[25],"type":["chr"],"align":["left"]}],"data":[{"1":"2","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"AD Female"},{"1":"1","2":"0","3":"5","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"6 / 6","_rn_":"AD Healthy Female"},{"1":"1","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"AD Healthy Male"},{"1":"2","2":"0","3":"0","4":"1","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.6666667","25":"2 / 3","_rn_":"AD Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"2","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Flu Immunized Only Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Only Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"1","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Plus Antibiotics Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu non immunized healthy"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"2","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"Hemo Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"2","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"MI Healthy Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"1","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"MI Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Overweight Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"2","21":"0","22":"0","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Overweight Female EGCG Treated"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"1","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Overweight Female EGCG+fishOil+VitC"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"1","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Tetanis Immunized"},{"1":"6","2":"0","3":"5","4":"1","5":"2","6":"0","7":"0","8":"0","9":"0","10":"1","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"2","18":"3","19":"1","20":"3","21":"0","22":"0","23":"0","24":"0.6800000","25":"17 / 25","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>This model doesn’t use regularization of the default by setting lambda=0, regularization generalizes better between the training set and test and validation set by reducing the over and under fit of model.</p>
+<pre class="r"><code>m2 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = &#39;Class_Type&#39;,
+             family=&#39;multinomial&#39;,
+             solver=&#39;L_BFGS&#39;, 
+             lambda = 0)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |===                                                                   |   4%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<p>Get confusion matrix in the training data.</p>
+<pre class="r"><code>h2o.confusionMatrix(m2, valid=FALSE) </code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["AD Female"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Female"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Male"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["AD Male"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 1"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 21"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 3"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 7"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 1"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 21"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 3"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 7"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Flu non immunized healthy"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["Hemo Female"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Female"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Male"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["Hemo Male"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["MI Healthy Males"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["MI Males"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["Overweight Female"],"name":[20],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG Treated"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG+fishOil+VitC"],"name":[22],"type":["dbl"],"align":["right"]},{"label":["Tetanis Immunized"],"name":[23],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[25],"type":["chr"],"align":["left"]}],"data":[{"1":"19","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 19","_rn_":"AD Female"},{"1":"0","2":"10","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 10","_rn_":"AD Healthy Female"},{"1":"0","2":"0","3":"10","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 10","_rn_":"AD Healthy Male"},{"1":"0","2":"0","3":"0","4":"15","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 15","_rn_":"AD Male"},{"1":"0","2":"0","3":"0","4":"0","5":"3","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 3","_rn_":"Flu Immunized Only Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"1","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 1","_rn_":"Flu Immunized Only Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"2","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Flu Immunized Only Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"2","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Flu Immunized Only Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"2","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Flu Immunized Plus Antibiotics Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"3","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 3","_rn_":"Flu Immunized Plus Antibiotics Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"2","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Flu Immunized Plus Antibiotics Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"2","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Flu Immunized Plus Antibiotics Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"4","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 4","_rn_":"Flu non immunized healthy"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"5","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 5","_rn_":"Hemo Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"2","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Hemo Healthy Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"2","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 2","_rn_":"Hemo Healthy Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"9","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 9","_rn_":"Hemo Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"4","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 4","_rn_":"MI Healthy Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"4","20":"0","21":"0","22":"0","23":"0","24":"0","25":"0 / 4","_rn_":"MI Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"10","21":"0","22":"0","23":"0","24":"0","25":"0 / 10","_rn_":"Overweight Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"3","22":"0","23":"0","24":"0","25":"0 / 3","_rn_":"Overweight Female EGCG Treated"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"5","23":"0","24":"0","25":"0 / 5","_rn_":"Overweight Female EGCG+fishOil+VitC"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"3","24":"0","25":"0 / 3","_rn_":"Tetanis Immunized"},{"1":"19","2":"10","3":"10","4":"15","5":"3","6":"1","7":"2","8":"2","9":"2","10":"3","11":"2","12":"2","13":"4","14":"5","15":"2","16":"2","17":"9","18":"4","19":"4","20":"10","21":"3","22":"5","23":"3","24":"0","25":"0 / 122","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>Get confusion matrix in the validation data.</p>
+<pre class="r"><code>h2o.confusionMatrix(m2, valid=TRUE)  </code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["AD Female"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Female"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Male"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["AD Male"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 1"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 21"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 3"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 7"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 1"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 21"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 3"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 7"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Flu non immunized healthy"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["Hemo Female"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Female"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Male"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["Hemo Male"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["MI Healthy Males"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["MI Males"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["Overweight Female"],"name":[20],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG Treated"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG+fishOil+VitC"],"name":[22],"type":["dbl"],"align":["right"]},{"label":["Tetanis Immunized"],"name":[23],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[25],"type":["chr"],"align":["left"]}],"data":[{"1":"2","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"AD Female"},{"1":"1","2":"3","3":"2","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.5000000","25":"3 / 6","_rn_":"AD Healthy Female"},{"1":"0","2":"0","3":"1","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"AD Healthy Male"},{"1":"2","2":"0","3":"0","4":"1","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.6666667","25":"2 / 3","_rn_":"AD Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"1","8":"1","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Flu Immunized Only Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Only Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"1","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Plus Antibiotics Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu non immunized healthy"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"2","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"Hemo Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"2","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"MI Healthy Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"1","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"MI Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Overweight Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"2","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Overweight Female EGCG Treated"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"1","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"Overweight Female EGCG+fishOil+VitC"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"1","24":"0.0000000","25":"0 / 1","_rn_":"Tetanis Immunized"},{"1":"5","2":"3","3":"3","4":"1","5":"0","6":"0","7":"1","8":"1","9":"1","10":"0","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"2","18":"2","19":"1","20":"0","21":"0","22":"3","23":"1","24":"0.4400000","25":"11 / 25","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<pre class="r"><code>m3 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = &#39;Class_Type&#39;,
+             family=&#39;multinomial&#39;,
+             solver=&#39;L_BFGS&#39;, 
+             lambda = 0,
+             keep_cross_validation_predictions = TRUE)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>h2o.confusionMatrix(m3, valid=TRUE)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["AD Female"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Female"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["AD Healthy Male"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["AD Male"],"name":[4],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 1"],"name":[5],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 21"],"name":[6],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 3"],"name":[7],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Only Day 7"],"name":[8],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 1"],"name":[9],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 21"],"name":[10],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 3"],"name":[11],"type":["dbl"],"align":["right"]},{"label":["Flu Immunized Plus Antibiotics Day 7"],"name":[12],"type":["dbl"],"align":["right"]},{"label":["Flu non immunized healthy"],"name":[13],"type":["dbl"],"align":["right"]},{"label":["Hemo Female"],"name":[14],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Female"],"name":[15],"type":["dbl"],"align":["right"]},{"label":["Hemo Healthy Male"],"name":[16],"type":["dbl"],"align":["right"]},{"label":["Hemo Male"],"name":[17],"type":["dbl"],"align":["right"]},{"label":["MI Healthy Males"],"name":[18],"type":["dbl"],"align":["right"]},{"label":["MI Males"],"name":[19],"type":["dbl"],"align":["right"]},{"label":["Overweight Female"],"name":[20],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG Treated"],"name":[21],"type":["dbl"],"align":["right"]},{"label":["Overweight Female EGCG+fishOil+VitC"],"name":[22],"type":["dbl"],"align":["right"]},{"label":["Tetanis Immunized"],"name":[23],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[24],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[25],"type":["chr"],"align":["left"]}],"data":[{"1":"2","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"AD Female"},{"1":"1","2":"3","3":"2","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.5000000","25":"3 / 6","_rn_":"AD Healthy Female"},{"1":"0","2":"0","3":"1","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"AD Healthy Male"},{"1":"2","2":"0","3":"0","4":"1","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.6666667","25":"2 / 3","_rn_":"AD Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"1","8":"1","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Flu Immunized Only Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Only Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Only Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 1"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 21"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"1","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"1.0000000","25":"1 / 1","_rn_":"Flu Immunized Plus Antibiotics Day 3"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu Immunized Plus Antibiotics Day 7"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Flu non immunized healthy"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Hemo Healthy Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"2","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"Hemo Male"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"2","19":"0","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 2","_rn_":"MI Healthy Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"1","20":"0","21":"0","22":"0","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"MI Males"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"0","24":"NaN","25":"0 / 0","_rn_":"Overweight Female"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"2","23":"0","24":"1.0000000","25":"2 / 2","_rn_":"Overweight Female EGCG Treated"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"1","23":"0","24":"0.0000000","25":"0 / 1","_rn_":"Overweight Female EGCG+fishOil+VitC"},{"1":"0","2":"0","3":"0","4":"0","5":"0","6":"0","7":"0","8":"0","9":"0","10":"0","11":"0","12":"0","13":"0","14":"0","15":"0","16":"0","17":"0","18":"0","19":"0","20":"0","21":"0","22":"0","23":"1","24":"0.0000000","25":"0 / 1","_rn_":"Tetanis Immunized"},{"1":"5","2":"3","3":"3","4":"1","5":"0","6":"0","7":"1","8":"1","9":"1","10":"0","11":"0","12":"0","13":"1","14":"0","15":"0","16":"0","17":"2","18":"2","19":"1","20":"0","21":"0","22":"3","23":"1","24":"0.4400000","25":"11 / 25","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<hr />
+<div id="binary-ml-ready-data-set" class="section level4">
+<h4>Binary ML ready data set</h4>
+<p>Lets go back to the ML_ready_250 data set and limit the classes to two, so that we can use binomial classification on Healthy or Disease. For this purpose the overweight females will be diseased because many health problems associated with being overweight.</p>
+<pre class="r"><code>ML_ready_250 &lt;- read.csv(&#39;ML_ready_250.csv&#39;, sep=&#39;,&#39;, header=TRUE, na.strings=c(&#39;&#39;,&#39; &#39;))
+ctrl &lt;- grep(&#39;[hH]ealthy&#39;,ML_ready_250$Class_Type)
+healthy &lt;- ML_ready_250[ctrl,]
+disease &lt;- ML_ready_250[-ctrl,]
+disease$Class_Type &lt;- &#39;Not Healthy or Treatment Control&#39;
+healthy$Class_Type &lt;- &#39;Healthy Control&#39;
+
+ML_ready_250_binomial_class &lt;- rbind(disease,healthy)
+write.csv(ML_ready_250_binomial_class,&#39;ML_ready_250_binomial.csv&#39;, row.names=FALSE)</code></pre>
+<p>Now, lets use H2O for binary classification and see results produced for the confusion matrix.</p>
+<pre class="r"><code>h2o.init(nthreads=-1, max_mem_size=&quot;2G&quot;)</code></pre>
+<pre><code>##  Connection successful!
+## 
+## R is connected to the H2O cluster: 
+##     H2O cluster uptime:         37 minutes 15 seconds 
+##     H2O cluster timezone:       America/Los_Angeles 
+##     H2O data parsing timezone:  UTC 
+##     H2O cluster version:        3.28.0.2 
+##     H2O cluster version age:    8 days  
+##     H2O cluster name:           H2O_started_from_R_m_vji152 
+##     H2O cluster total nodes:    1 
+##     H2O cluster total memory:   1.97 GB 
+##     H2O cluster total cores:    2 
+##     H2O cluster allowed cores:  2 
+##     H2O cluster healthy:        TRUE 
+##     H2O Connection ip:          localhost 
+##     H2O Connection port:        54321 
+##     H2O Connection proxy:       NA 
+##     H2O Internal Security:      FALSE 
+##     H2O API Extensions:         Amazon S3, Algos, AutoML, Core V3, TargetEncoder, Core V4 
+##     R Version:                  R version 3.6.2 (2019-12-12)</code></pre>
+<pre class="r"><code>h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath(&quot;ML_ready_250_binomial.csv&quot;))</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c(&quot;train&quot;,&quot;test&quot;,&quot;valid&quot;))
+names(data) &lt;- c(&#39;Train&#39;,&#39;Test&#39;,&#39;Valid&#39;) 
+
+m4 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:251],
+             y = &#39;Class_Type&#39;,
+             family=&#39;binomial&#39;,
+             solver=&#39;L_BFGS&#39;, 
+             lambda = 0)</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |==                                                                    |   3%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>h2o.confusionMatrix(m4, valid=TRUE)</code></pre>
+<div data-pagedtable="false">
+<script data-pagedtable-source type="application/json">
+{"columns":[{"label":[""],"name":["_rn_"],"type":[""],"align":["left"]},{"label":["Healthy Control"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["Not Healthy or Treatment Control"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["Error"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["Rate"],"name":[4],"type":["fctr"],"align":["left"]}],"data":[{"1":"6","2":"1","3":"0.1428571","4":"=1/7","_rn_":"Healthy Control"},{"1":"3","2":"15","3":"0.1666667","4":"=3/18","_rn_":"Not Healthy or Treatment Control"},{"1":"9","2":"16","3":"0.1600000","4":"=4/25","_rn_":"Totals"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
+  </script>
+</div>
+<p>With binary classification the error rate dropped from 80-90% on 23 classes to 29-30% on 2 classes.</p>
+</div>
 
 
 
