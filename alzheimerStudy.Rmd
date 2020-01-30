@@ -3,9 +3,9 @@ title: "Alzheimers Disease Brain Blood Samples"
 author: "Janis Corona"
 date: "1/17/2020"
 output:
-  word_document: default
   html_document:
     df_print: paged
+  word_document: default
   pdf_document: default
 ---
 
@@ -1038,4 +1038,369 @@ h2o.confusionMatrix(m4, valid=TRUE)
 With binary classification the error rate dropped from 80-90% on 23 classes to 29-30% on 2 classes.
 
 
+***
 
+Lets use some of the other machine classifiers on this data of binary values and the data of 23 classes.
+```{r, message=FALSE, error=FALSE, warning=FALSE}
+library(caret)
+library(randomForest)
+library(MASS)
+library(gbm)
+
+set.seed(189678345)
+
+```
+
+```{r}
+
+inTrain <- createDataPartition(y=ML_ready_250$Class_Type, p=0.7, list=FALSE)
+
+trainingSet <- ML_ready_250[inTrain,]
+testingSet <- ML_ready_250[-inTrain,]
+```
+
+Random Forest, cross-validation (cv) = 5
+```{r}
+rfMod <- train(Class_Type~., method='rf', data=(trainingSet), 
+               trControl=trainControl(method='cv'), number=5)
+plot(rfMod)
+```
+
+Generalized Boosted Model
+```{r}
+gbmMod <- train(Class_Type~., method='gbm', data=trainingSet, verbose=FALSE )
+
+plot(gbmMod)
+```
+
+Latent dirichlet allocation model
+```{r, message=FALSE, error=FALSE, warning=FALSE}
+ldaMod <- train(Class_Type~., method='lda', data=trainingSet)
+```
+
+Run predictions on the testing set
+```{r}
+predRF <- predict(rfMod, testingSet)
+predGbm <- predict(gbmMod, testingSet)
+predlda <- predict(ldaMod, testingSet)
+
+predDF <- data.frame(predRF, predGbm, predlda, type=testingSet$Class_Type)
+predDF
+```
+
+Combined Models, similar to voting in ensemble methods of best algorithm score.
+```{r}
+# CombinedModels <- train(type~., method='gam', data=predDF)
+# CombinedPredictions <- predict(CombinedModels, predDF)
+# CombinedPredictions
+```
+
+Some stats follow.
+```{r}
+# sum <- sum(CombinedPredictions==testingSet$TYPE)
+# length <- length(testingSet$TYPE)
+# accuracy_CP1 <- sum/length 
+
+sum <- sum(predRF==testingSet$Class_Type) 
+length <- length(testingSet$Class_Type)
+accuracy_rfMod <- (sum/length) 
+
+sum <- sum(predGbm==testingSet$Class_Type)
+accuracy_gbmMod <- sum/length 
+
+sum <- sum(predlda==testingSet$Class_Type) 
+accuracy_ldaMod <- sum/length
+
+#accuracy_CP1
+accuracy_rfMod
+accuracy_gbmMod
+accuracy_ldaMod
+```
+
+The Random Forest algorithm, with differences by default than the random forest model in the caret package used previously.
+```{r}
+rf2 <- randomForest(Class_Type~., data=trainingSet, method='class')
+
+plot(rf2)
+```
+
+```{r}
+predRF2 <- predict(rf2, testingSet, type='class')
+
+sum <- sum(predRF2==testingSet$Class_Type)
+accuracy_RF2 <- sum/length 
+
+confusionMatrix(predRF2, testingSet$Class_Type)
+predDF2 <- data.frame(predRF, predRF2, predlda, predGbm, TYPE=testingSet$Class_Type)
+```
+
+```{r}
+# CombinedModels2 <- train(TYPE~., method='gam', data=predDF2)
+# CombinedPredictions2 <- predict(CombinedModels2, predDF2)
+# CombinedPredictions2
+```
+
+```{r}
+# sum <- sum(CombinedPredictions2==testingSet$TYPE)
+# accuracy_CombinedPredictions2 <- sum/length
+
+predDF3 <- data.frame(predRF, predRF2, predlda, predGbm,  TYPE=testingSet$Class_Type)
+
+results <- c(round(accuracy_rfMod,2), round(accuracy_RF2,2), 
+             round(accuracy_ldaMod, 2), round(accuracy_gbmMod,2), 
+            round(100,2))
+
+results <- as.factor(results)
+results <- t(data.frame(results))
+colnames(results) <- colnames(predDF3)
+Results <- rbind(predDF3, results) #37X6
+Results
+```
+
+
+Try 'rpart', 'knn', 'glm', 
+```{r}
+knnMod <- train(Class_Type ~ .,
+                method='knn', preProcess=c('center','scale'),
+                tuneLength=10, trControl=trainControl(method='cv'), data=trainingSet)
+plot(knnMod)
+```
+
+```{r}
+rpartMod <- train(Class_Type ~ ., method='rpart', tuneLength=9, data=trainingSet) 
+plot(rpartMod)
+```
+
+```{r}
+# glmMod <- train(Class_Type ~ ., 
+#                 method='glm', data=trainingSet) 
+```
+
+```{r}
+predKNN <- predict(knnMod, testingSet)
+predRPART <- predict(rpartMod, testingSet)
+#predGLM <- predict(glmMod, testingSet)
+```
+
+```{r}
+length=length(testingSet$Class_Type)
+
+sumKNN <- sum(predKNN==testingSet$Class_Type)
+sumRPart <- sum(predRPART==testingSet$Class_Type)
+#sumGLM <- sum(predGLM==testingSet$TYPE)
+
+accuracy_KNN <- sumKNN/length 
+accuracy_RPART <- sumRPart/length 
+#accuracy_GLM <- sumGLM/length 
+
+predDF3 <- data.frame(predDF2[,1:4],predKNN,predRPART, 
+                      TYPE=testingSet$Class_Type)
+accuracy_KNN
+accuracy_RPART
+#accuracy_GLM
+
+predDF3
+```
+
+```{r}
+# CombinedModels <- train(TYPE ~ ., method='gam', data=predDF3)
+# CombinedPredictions2 <- predict(CombinedModels, predDF3)
+# 
+# accuracy_CP2 <- sum(CombinedPredictions2==testingSet$TYPE)/length 
+
+predDF4 <- data.frame(predDF3[,1:6], TYPE=testingSet$Class_Type)
+colnames(predDF4)
+
+results <- c(round(accuracy_rfMod,2), round(accuracy_RF2,2), 
+             round(accuracy_ldaMod, 2), round(accuracy_gbmMod,2), 
+             round(accuracy_KNN,2), round(accuracy_RPART,2),
+             round(100,2))
+results <- as.factor(results)
+results <- t(data.frame(results))
+colnames(results) <- colnames(predDF4)
+Results <- rbind(predDF4, results) 
+Results
+
+```
+
+
+***
+
+***
+
+Now with the binary classification set, ML_ready_250_binomial_class. When predicting with 23 classes, the accuracy above isn't much better than half and some models couldn't be used like LDA.
+
+```{r}
+
+inTrain <- createDataPartition(y=ML_ready_250_binomial_class$Class_Type, p=0.7, list=FALSE)
+
+trainingSet <- ML_ready_250_binomial_class[inTrain,]
+testingSet <- ML_ready_250_binomial_class[-inTrain,]
+```
+
+Random Forest, cross-validation (cv) = 5
+```{r}
+rfMod <- train(Class_Type~., method='rf', data=(trainingSet), 
+               trControl=trainControl(method='cv'), number=5)
+plot(rfMod)
+```
+
+Generalized Boosted Model
+```{r}
+gbmMod <- train(Class_Type~., method='gbm', data=trainingSet, verbose=FALSE )
+
+plot(gbmMod)
+```
+
+Latent dirichlet allocation model
+```{r, message=FALSE, error=FALSE, warning=FALSE}
+ldaMod <- train(Class_Type~., method='lda', data=trainingSet)
+```
+
+Run predictions on the testing set
+```{r}
+predRF <- predict(rfMod, testingSet)
+predGbm <- predict(gbmMod, testingSet)
+predlda <- predict(ldaMod, testingSet)
+
+predDF <- data.frame(predRF, predGbm, predlda, type=testingSet$Class_Type)
+predDF
+```
+
+Combined Models, similar to voting in ensemble methods of best algorithm score.
+```{r}
+# CombinedModels <- train(type~., method='gam', data=predDF)
+# CombinedPredictions <- predict(CombinedModels, predDF)
+# CombinedPredictions
+```
+
+Some stats follow.
+```{r}
+# sum <- sum(CombinedPredictions==testingSet$TYPE)
+# length <- length(testingSet$TYPE)
+# accuracy_CP1 <- sum/length 
+
+sum <- sum(predRF==testingSet$Class_Type) 
+length <- length(testingSet$Class_Type)
+accuracy_rfMod <- (sum/length) 
+
+sum <- sum(predGbm==testingSet$Class_Type)
+accuracy_gbmMod <- sum/length 
+
+sum <- sum(predlda==testingSet$Class_Type) 
+accuracy_ldaMod <- sum/length
+
+#accuracy_CP1
+accuracy_rfMod
+accuracy_gbmMod
+accuracy_ldaMod
+```
+
+The Random Forest algorithm, with differences by default than the random forest model in the caret package used previously.
+```{r}
+# rf2 <- randomForest(Class_Type~., data=trainingSet)
+# 
+# plot(rf2)
+```
+
+```{r}
+# predRF2 <- predict(rf2, testingSet, type='class')
+# 
+# sum <- sum(predRF2==testingSet$Class_Type)
+# accuracy_RF2 <- sum/length 
+# 
+# confusionMatrix(predRF2, testingSet$Class_Type)
+predDF2 <- data.frame(predRF, predlda, predGbm, TYPE=testingSet$Class_Type)
+```
+
+```{r}
+# CombinedModels2 <- train(TYPE~., method='gam', data=predDF2)
+# CombinedPredictions2 <- predict(CombinedModels2, predDF2)
+# CombinedPredictions2
+```
+
+```{r}
+# sum <- sum(CombinedPredictions2==testingSet$TYPE)
+# accuracy_CombinedPredictions2 <- sum/length
+
+predDF3 <- data.frame(predRF, predlda, predGbm,  TYPE=testingSet$Class_Type)
+
+results <- c(round(accuracy_rfMod,2),  
+             round(accuracy_ldaMod, 2), round(accuracy_gbmMod,2), 
+            round(100,2))
+
+results <- as.factor(results)
+results <- t(data.frame(results))
+colnames(results) <- colnames(predDF3)
+Results <- rbind(predDF3, results) 
+Results
+```
+
+
+Try 'rpart', 'knn', 'glm', 
+```{r}
+knnMod <- train(Class_Type ~ .,
+                method='knn', preProcess=c('center','scale'),
+                tuneLength=10, trControl=trainControl(method='cv'), data=trainingSet)
+plot(knnMod)
+```
+
+```{r}
+rpartMod <- train(Class_Type ~ ., method='rpart', tuneLength=9, data=trainingSet) 
+plot(rpartMod)
+```
+
+```{r}
+# glmMod <- train(Class_Type ~ ., 
+#                 method='glm', data=trainingSet) 
+```
+
+```{r}
+predKNN <- predict(knnMod, testingSet)
+predRPART <- predict(rpartMod, testingSet)
+#predGLM <- predict(glmMod, testingSet)
+```
+
+```{r}
+length=length(testingSet$Class_Type)
+
+sumKNN <- sum(predKNN==testingSet$Class_Type)
+sumRPart <- sum(predRPART==testingSet$Class_Type)
+#sumGLM <- sum(predGLM==testingSet$TYPE)
+
+accuracy_KNN <- sumKNN/length 
+accuracy_RPART <- sumRPart/length 
+#accuracy_GLM <- sumGLM/length 
+
+predDF3 <- data.frame(predDF2[,1:3],predKNN,predRPART, 
+                      TYPE=testingSet$Class_Type)
+accuracy_KNN
+accuracy_RPART
+#accuracy_GLM
+
+predDF3
+```
+
+```{r}
+# CombinedModels <- train(TYPE ~ ., method='gam', data=predDF3)
+# CombinedPredictions2 <- predict(CombinedModels, predDF3)
+# 
+# accuracy_CP2 <- sum(CombinedPredictions2==testingSet$TYPE)/length 
+
+predDF4 <- data.frame(predDF3[,1:5], TYPE=testingSet$Class_Type)
+colnames(predDF4)
+
+results <- c(round(accuracy_rfMod,2),  
+             round(accuracy_ldaMod, 2), round(accuracy_gbmMod,2), 
+             round(accuracy_KNN,2), round(accuracy_RPART,2),
+             round(100,2))
+results <- as.factor(results)
+results <- t(data.frame(results))
+colnames(results) <- colnames(predDF4)
+Results <- rbind(predDF4, results) 
+Results
+
+```
+
+***
+From the above, using the binary class system of predictions with various models, the accuracy jumped to 70-83% accuracy with Random Forest of the caret package as the Random Forest package failed for the structure of this binary data and was commented out. The next best model was glm or generalized linear machines with 81% accuracy.
