@@ -1404,3 +1404,340 @@ Results
 
 ***
 From the above, using the binary class system of predictions with various models, the accuracy jumped to 70-83% accuracy with Random Forest of the caret package as the Random Forest package failed for the structure of this binary data and was commented out. The next best model was glm or generalized linear machines with 81% accuracy.
+
+***
+
+***
+
+I want to go back to the data on the hemochromatosis and compare to healthy and flu as well as tetanis vaccinated samples. Create a data set of the top 20 genes most and least expressed in hemochromatosis from the all_6_studies.csv, and the Dracula.csv better named sample types/classes, to create an ML ready data set of 20 genes to classify with H2O, random forests, glm, rpart, LDA, KNN, and so on as done above.
+```{r}
+all <- read.csv('all_6_studies.csv', sep=',', header=T, na.strings=c('',' '))
+dracula <- read.csv('Dracula.csv', sep=',', header=T, na.strings=c('',' '))
+```
+
+
+Sort the all table by hemochromatosis by hemo_FC_malesOverall and hemo_FC_femalesOverall.
+```{r}
+hemoFCm <- all[order(all$hemo_FC_malesOverall, decreasing=TRUE)[1:20],]
+hemoFCf <- all[order(all$hemo_FC_femalesOverall, decreasing=TRUE)[1:20],]
+hemoFCmL <- all[order(all$hemo_FC_malesOverall)[1:20],]
+hemoFCfL <- all[order(all$hemo_FC_femalesOverall)[1:20],]
+
+Hemochromatosis <- rbind(hemoFCm,hemoFCf,hemoFCmL,hemoFCfL)
+ironToxic <- Hemochromatosis[!duplicated(Hemochromatosis),]
+ironToxic$GENE_SYMBOL
+```
+Combine the data.
+```{r}
+IronDataGenes <- as.data.frame(unique(ironToxic$GENE_SYMBOL))
+colnames(IronDataGenes) <- 'Gene'
+IronData2 <- merge(IronDataGenes, dracula, by.x='Gene', by.y='X')
+row.names(IronData2) <- IronDataGenes$Gene
+IronData3 <- IronData2[,-1]
+Class_Type <- gsub('-','_', colnames(IronData3))
+ClassType <- gsub('.[0-9]$','', colnames(IronData3))
+ClassType
+ClassType2 <- ML_ready_250$Class_Type
+compare <- cbind(as.data.frame(ClassType),as.data.frame(ClassType2))
+compare
+#Same samples for the class type
+
+IronData_ML <- as.data.frame(t(IronData3))
+row.names(IronData_ML) <- NULL
+IronData_ML$Class_Type <- ClassType2
+IronData_ML <- IronData_ML[,c(74,1:73)]
+write.csv(IronData_ML, 'hemochromatosis_ML_ready.csv', row.names=FALSE)
+```
+***
+***
+The file we want to use ML on is now saved as hemochromatosis_ML_ready.csv from the IronData_ML data table. 
+```{r}
+inTrain <- createDataPartition(y=IronData_ML$Class_Type, p=0.7, list=FALSE)
+
+trainingSet <- IronData_ML[inTrain,]
+testingSet <- IronData_ML[-inTrain,]
+
+
+```
+
+```{r}
+knnMod <- train(Class_Type ~ .,
+                method='knn', preProcess=c('center','scale'),
+                tuneLength=10, trControl=trainControl(method='cv'), data=trainingSet)
+plot(knnMod)
+```
+
+
+```{r}
+predKNN <- predict(knnMod, testingSet)
+```
+
+
+```{r}
+length=length(testingSet$Class_Type)
+
+sumKNN <- sum(predKNN==testingSet$Class_Type)
+
+accuracy_KNN <- sumKNN/length 
+
+predDF_3 <- data.frame(predKNN,
+                      TYPE=testingSet$Class_Type)
+accuracy_KNN
+```
+
+```{r}
+predDF3
+```
+
+***
+Now use the H2O ML package.
+```{r}
+h2o.init(nthreads=-1, max_mem_size="2G")
+
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath("hemochromatosis_ML_ready.csv"))
+#h2o.summary(D) would print the summary stats of these 251 features
+
+data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c("train","test","valid"))
+names(data) <- c('Train','Test','Valid') 
+```
+
+
+multinomial model
+```{r}
+m1 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:74],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS')
+
+h2o.confusionMatrix(m1, valid=TRUE)
+```
+
+This model doesn't use regularization of the default by setting lambda=0, 
+regularization generalizes better between the training set and test and validation set
+by reducing the over and under fit of model.
+```{r}
+m2 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:74],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS', 
+             lambda = 0)
+```
+
+Get confusion matrix in the training data.
+```{r}
+h2o.confusionMatrix(m2, valid=FALSE) 
+```
+
+Get confusion matrix in the validation data.
+```{r}
+h2o.confusionMatrix(m2, valid=TRUE)  
+```
+
+
+```{r}
+m3 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:74],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS', 
+             lambda = 0,
+             keep_cross_validation_predictions = TRUE)
+h2o.confusionMatrix(m3, valid=TRUE)
+```
+
+The above H2O commands ran very fast. Even with 23 classes on a selected few features of a smaller subset of genes that were the most or least unique genes in the female and male datasets of fold change in hemochromatosis patients' blood gene expression profiles, the accuracy in prediction is terrible. H2O is an extenstion of Principal Component Analysis and only keeps the components or features with the most variation in the data. We should shorten this data of 23 classes to something more reasonable. Also, GLM in R can use only binary or 2 features with the settings used. This will be left to determine which classes to fit these 23 current class types into for better accuracy in prediction. The flu samples, combine the mixed gender, make one overweight class, one healthy class, etc.
+
+For now, I am just curious about how immunizations for flu and tetanis react in hemochromatosis people.
+```{r}
+Flu <- IronData_ML[grep('Flu', IronData_ML$Class_Type),]
+Hemo <- IronData_ML[grep('Hemo', IronData_ML$Class_Type),]
+tet <- IronData_ML[grep('Tet', IronData_ML$Class_Type),]
+
+FHT <- rbind(Flu, Hemo, tet)
+FHT_HemoOnly <- FHT[-grep('Hemo Healthy', FHT$Class_Type),]
+
+#This next line has to be done so the original factors of 23 levels isn't included in the output ML results
+FHT_HemoOnly$Class_Type <- as.factor(as.character(FHT_HemoOnly$Class_Type))
+unique(FHT_HemoOnly$Class_Type)
+```
+
+```{r}
+colnames(FHT_HemoOnly) <- gsub('-', '.', colnames(FHT_HemoOnly))
+inTrain <- createDataPartition(y=FHT_HemoOnly$Class_Type, p=0.7, list=FALSE)
+
+trainingSet <- FHT_HemoOnly[inTrain,]
+testingSet <- FHT_HemoOnly[-inTrain,]
+
+
+```
+
+```{r}
+knnMod <- train(Class_Type ~ .,
+                method='knn', preProcess=c('center','scale'),
+                tuneLength=10, trControl=trainControl(method='cv'), data=trainingSet)
+plot(knnMod)
+```
+
+
+```{r}
+predKNN <- predict(knnMod, testingSet)
+```
+
+
+```{r}
+length=length(testingSet$Class_Type)
+
+sumKNN <- sum(predKNN==testingSet$Class_Type)
+
+accuracy_KNN <- sumKNN/length 
+
+predDF_3 <- data.frame(predKNN,
+                      TYPE=testingSet$Class_Type)
+accuracy_KNN
+```
+ 
+Using K-Nearest Neighbor, the prediction accuracy improved from roughly 36% using 23 classes, to 67% using 12 classes, but we can do better by examining those sample IDs again.
+
+***
+
+The Random Forest algorithm, with differences by default than the random forest model in the caret package used previously.
+```{r}
+rf2 <- randomForest(Class_Type~., data=trainingSet)
+
+plot(rf2)
+```
+
+```{r}
+predRF2 <- predict(rf2, testingSet, type='class')
+ 
+sum <- sum(predRF2==testingSet$Class_Type)
+accuracy_RF2 <- sum/length 
+accuracy_RF2
+```
+
+The Random Forest algorithm from the RandomForest R package scored the same as the KNN algorithm with the caret package. And using 12 levels of classes to classify.
+
+
+Now, lets change the flu non immunized to 'healthy', the flu with antibiotics to its own class, the flu without antibiotics to its own class, combine the Hemo males and females, and keep the tetanis immunized as its own class. Then see how well the prediction accuracy improves.
+```{r}
+Hemo2 <- FHT_HemoOnly[grep('Hemo', FHT_HemoOnly$Class_Type),]
+Hemo2$Class_Type <- 'Hemochromatosis'
+FluAntb <- FHT_HemoOnly[grep('Flu Immunized Plus', FHT_HemoOnly$Class_Type),]
+FluAntb$Class_Type <- 'Flu Vaccine and Antibiotics'
+FluOnly <- FHT_HemoOnly[grep('Flu Immunized Only', FHT_HemoOnly$Class_Type),]
+FluOnly$Class_Type <- 'Flu vaccinated only'
+healthy <- FHT_HemoOnly[grep('healthy', FHT_HemoOnly$Class_Type),]
+healthy$Class_Type <- 'healthy non-immunized 18-45 year olds'
+tetn <- FHT_HemoOnly[grep('Tetan', FHT_HemoOnly$Class_Type),]  
+
+NewDataHemo_ML <- rbind(Hemo2,FluAntb,FluOnly,healthy,tetn)
+unique(NewDataHemo_ML$Class_Type)
+```
+
+So now there are five classes to predict if a blood sample was healthy non-vaccinated, flu vaccinated, flu vaccinated with antibiotics, hemochromatosis, or tetanis immunized. Lets see how well KNN and random forest do with fewer classes to predict. The last results were 67% with 12 classes, and 38% with 23 classes for KNN.
+
+
+```{r}
+inTrain <- createDataPartition(y=NewDataHemo_ML$Class_Type, p=0.7, list=FALSE)
+
+trainingSet <- NewDataHemo_ML[inTrain,]
+testingSet <- NewDataHemo_ML[-inTrain,]
+
+set.seed(123)
+write.csv(NewDataHemo_ML,'NewDataHemo_ML.csv', row.names=TRUE)
+```
+
+```{r}
+knnMod <- train(Class_Type ~ .,
+                method='knn', preProcess=c('center','scale'),
+                tuneLength=10, trControl=trainControl(method='cv'), data=trainingSet)
+plot(knnMod)
+```
+
+
+```{r}
+predKNN <- predict(knnMod, testingSet)
+```
+
+
+```{r}
+length=length(testingSet$Class_Type)
+
+sumKNN <- sum(predKNN==testingSet$Class_Type)
+
+accuracy_KNN <- sumKNN/length 
+
+predDF_3 <- data.frame(predKNN,
+                      TYPE=testingSet$Class_Type)
+accuracy_KNN
+```
+ 
+Using K-Nearest Neighbor, the prediction accuracy improved from roughly 38% using 23 classes, to 67% using 12 classes, and to 92% using 5 classes. 
+
+***
+
+The Random Forest algorithm, with differences by default than the random forest model in the caret package used previously.
+```{r}
+trainingSet$Class_Type <- as.factor(trainingSet$Class_Type)
+testingSet$Class_Type <- as.factor(testingSet$Class_Type)
+rf2 <- randomForest(Class_Type~., data=trainingSet)
+
+plot(rf2)
+```
+
+```{r}
+predRF2 <- predict(rf2, testingSet, type='class')
+ 
+sum <- sum(predRF2==testingSet$Class_Type)
+accuracy_RF2 <- sum/length 
+accuracy_RF2
+```
+
+***
+
+We can see that the models were improved significantly in predicting the five classes from 12 and from 23 classes using the same KNN and random forest R algorthims. The KNN jumped from 67% to 92% and the random forest increased from 67% to 92% as well. The data had 54 observations and 74 features in total, which were the genes found with the least and most expressed using fold change in the males and females with hemochromatosis and filtering for unique genes.
+
+***
+Now use the H2O ML package.
+```{r}
+library(h2o)
+h2o.init(nthreads=-1, max_mem_size="2G")
+
+h2o.removeAll() ## clean slate - just in case the cluster was already running
+
+D = h2o.importFile(path = normalizePath("NewDataHemo_ML.csv"))
+#h2o.summary(D) would print the summary stats of these 251 features
+
+data = h2o.splitFrame(D,ratios=c(.7,.15),
+                      destination_frames = c("train","test","valid"))
+names(data) <- c('Train','Test','Valid') 
+```
+
+
+multinomial model
+```{r}
+m1 = h2o.glm(training_frame = data$Train, validation_frame = data$Valid, 
+             x = colnames(data$Train)[2:74],
+             y = 'Class_Type',
+             family='multinomial',
+             solver='L_BFGS')
+
+h2o.confusionMatrix(m1, valid=TRUE)
+```
+
+***
+
+Using the H2O GLM algorithm, for error accuracy, the flu and hemochromatosis samples produced 100% accuracy, but the tetanis and healthy non-immunized had error rates of 33% for tetanis immunized in this training and validation set, and 100% error for the healthy non-immunized samples. This GLM model had an error of 2/11. This gave the H20 accuracy in prediction with five classes an 82% accuracy.
+```{r}
+2/11
+9/11
+```
+
+
+
+
